@@ -1,5 +1,25 @@
 #EVERYTHING IS PASSED BY REFERENCE!!!!!!
 
+# TODO 
+# 1 Otherwise, if no wall ahead of us: move forward (EDIT: If his best path is shorter than ours, then wall him in some way)
+# 2 if more than one move to clear wall (EDIT: This isn't necessary since we are going to check
+#            for the gap, rather than going the technically shorter path, we would want to go for the end that we
+#            know for sure will have a gap
+# 3 wall them back!
+# 4 IF THE WALL IS WITHIN BOUNDS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+# 5 IF THE WALL BLOCKS OFF A PLAYERS PATH
+# 6 IF THE WALL OVERLAYS PART OF ANOTHER WALL
+# 7 if wall in front of cell at position, based on the direction the player is heading
+# 8 Does not take into account heading when counting the number of moves to clear a wall (right now only works for moving right and left)
+
+# NOTES!
+# Know when opponent runs out of walls, if they do and we have the shortest path, then we win and there is no need to block with walls
+# Try to know when we force opponent to go backwards
+# Tru to know when we limit where the opponent can place walls, aka if we block our path, he can't block our other path
+# Rate our moves, check A, B, C, D and set values for each then make best move
+# BEST CASE: force both of us into our forward and therefore his backward which puts us both in the same boat and go shortest path to win!
+
+
 import sys, math, random
 
 ########################################################
@@ -29,18 +49,16 @@ def first_player_of_two(players, walls):
         else:
             print >> sys.stderr, "Wall not valid in corner! FIX IT"
     
-    #TODO! Otherwise, if no wall ahead of us: move forward (EDIT: If his best path is shorter than ours, then wall him in some way)
+    #TODO 1
     else:
         #if wall to our right
         if wall_in_front(walls, players[myId], "RIGHT"):
-            #TODO! if more than one move to clear wall (EDIT: This isn't necessary since we are going to check
-            #for the gap, rather than going the technically shorter path, we would want to go for the end that we
-            #know for sure will have a gap
+            #TODO 2 
             results = moves_to_clear_wall(walls, players[myId], "RIGHT")
             movesToClearWall = results[0]
             bestDirection = results[1]
             if (movesToClearWall > 1):
-                #TODO wall them back!
+                #TODO 3
                 print random.randrange(1,9), random.randrange(0,9), "V"
             else:
                 #clear the wall
@@ -108,9 +126,7 @@ def is_in_bounds(position):
     
 #Checks if a wall is valid by seeing if another wall is already there or if it goes out of bounds    
 def is_valid_wall(players, myId, walls, putX, putY, wallO):
-    #TODO IF THE WALL IS WITHIN BOUNDS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    # TODO IF THE WALL BLOCKS OFF A PLAYERS PATH
-    # TODO IF THE WALL OVERLAYS PART OF ANOTHER WALL
+    #TODO 4, 5, 6
     if players[myId].wallsLeft == 0: 
         # no walls left
         return False
@@ -129,7 +145,7 @@ def is_valid_wall(players, myId, walls, putX, putY, wallO):
     return True
 
 
-#TODO if wall in front of cell at position, based on the direction the player is heading
+#TODO 7
 def wall_in_front(walls, position, heading):
     for wall in walls:
         if heading == "RIGHT":
@@ -147,7 +163,7 @@ def moves_to_clear_wall(walls, position, heading):
     movesUp = 0
     movesDown = 0
     
-    #####TODO FOR THIS PART: Does not take into account heading when counting the number of moves to clear a wall (right now only works for moving right and left)
+    #####TODO 8
     
     #check num moves to clear by moving up
     while wall_in_front(walls, originalPos, heading):
