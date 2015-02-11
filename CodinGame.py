@@ -1,24 +1,17 @@
-#EVERYTHING IS PASSED BY REFERENCE!!!!!!
 
 # TODO 
-# 1 Otherwise, if no wall ahead of us: move forward (EDIT: If his best path is shorter than ours, then wall him in some way)
-# 2 if more than one move to clear wall (EDIT: This isn't necessary since we are going to check
-#            for the gap, rather than going the technically shorter path, we would want to go for the end that we
-#            know for sure will have a gap
-# 3 wall them back!
 # 4 IF THE WALL IS WITHIN BOUNDS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 # 5 IF THE WALL BLOCKS OFF A PLAYERS PATH
 # 6 IF THE WALL OVERLAYS PART OF ANOTHER WALL
-# 7 if wall in front of cell at position, based on the direction the player is heading
 # 8 Does not take into account heading when counting the number of moves to clear a wall (right now only works for moving right and left)
 
 # NOTES!
-# Know when opponent runs out of walls, if they do and we have the shortest path, then we win and there is no need to block with walls
-# Try to know when we force opponent to go backwards
-# Tru to know when we limit where the opponent can place walls, aka if we block our path, he can't block our other path
-# Rate our moves, check A, B, C, D and set values for each then make best move
-# BEST CASE: force both of us into our forward and therefore his backward which puts us both in the same boat and go shortest path to win!
+#EVERYTHING IS PASSED BY REFERENCE!!!!!!
+# LOCKDOWN: force both of us into our forward and therefore his backward which puts us both in the same boat and go shortest path to win!
 
+# HANDLE
+# For lockdown -- Worst Case Scenario: They lock out our exit before we completely lock theirs
+# Know when opponent runs out of walls, if they do and we have the shortest path, then we win and there is no need to block with walls
 
 import sys, math, random
 
@@ -145,7 +138,7 @@ def is_valid_wall(players, myId, walls, putX, putY, wallO):
     return True
 
 
-#TODO 7
+#checks if wall is in front of given postion, based on the direction the player is heading
 def wall_in_front(walls, position, heading):
     for wall in walls:
         if heading == "RIGHT":
