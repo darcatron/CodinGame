@@ -1,4 +1,3 @@
-
 # TODO 
 # 4 IF THE WALL IS WITHIN BOUNDS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 # 5 IF THE WALL BLOCKS OFF A PLAYERS PATH
@@ -120,7 +119,9 @@ def is_in_bounds(position):
 #Checks if a wall is valid by seeing if another wall is already there or if it goes out of bounds    
 def is_valid_wall(players, myId, walls, putX, putY, wallO):
     #TODO 4, 5, 6
-    if players[myId].wallsLeft == 0: 
+    global w, h
+
+    if players[myId]["wallsLeft"] == 0: 
         # no walls left
         return False
     elif {"wallX": putX, "wallY": putY, "wallO": wallO} in walls:
@@ -130,9 +131,15 @@ def is_valid_wall(players, myId, walls, putX, putY, wallO):
         if {"wallX": putX - 1, "wallY": putY + 1, "wallO": "H"} in walls:
             # wall crosses an existing horizontal wall
             return False
+        if putX >= w or (putY >= h - 1) or putX == 0:
+            #wall is out of bounds
+            return False
     elif wallO == "H":
         if {"wallX": putX + 1, "wallY": putY - 1, "wallO": "V"} in walls:
             # wall crosses an existing vertical wall
+            return False
+        if (putX >= w - 1) or putY >= h or putY == 0:
+            #wall is out of bounds
             return False
     
     return True
