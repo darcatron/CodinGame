@@ -1,5 +1,6 @@
 # TODO 
 # 5 IF THE WALL BLOCKS OFF A PLAYERS PATH
+# 6 IF THE WALL OVERLAYS PART OF ANOTHER WALL
 
 # 8 Does not take into account heading when counting the number of moves to clear a wall (right now only works for moving right and left)
 
@@ -160,15 +161,23 @@ def wall_crosses_or_overlays(putX, putY, wallO, walls):
     else:
         print >> sys.stderr, "Err: wall_crosses_or_overlays got strange orientation"
 
-#checks if wall is in front of given postion, based on the direction the player is heading
+#checks if wall is in front of given postion, based on the direction the player intends to move
 def wall_in_front(walls, position, heading):
     for wall in walls:
         if heading == "RIGHT":
             if (wall["wallO"] == 'V' and wall["wallX"] == position["x"] + 1 and (wall["wallY"] == position["y"] or wall["wallY"] + 1 == position["y"])):
                 return True
         elif heading == "LEFT":
-            if (wall["wallO"] == 'V' and wall["wallX"] == position["x"] - 1 and (wall["wallY"] == position["y"] or wall["wallY"] + 1 == position["y"])):
+            if (wall["wallO"] == 'V' and wall["wallX"] == position["x"] and (wall["wallY"] == position["y"] or wall["wallY"] + 1 == position["y"])):
                 return True
+        elif heading == "UP":
+            if (wall["wallO"] == 'H' and (wall["wallX"] == position["x"] or wall["wallX"] + 1 == position["x"] ) and wall["wallY"] == position["y"]):
+                return True
+        elif heading == "DOWN":
+            if (wall["wallO"] == 'H' and (wall["wallX"] == position["x"] or wall["wallX"] + 1 == position["x"]) and wall["wallY"] == position["y"] + 1):
+                return True
+        else:
+            print >> sys.stder, "Invalid heading in wall_in_front"
 
     return False
 
