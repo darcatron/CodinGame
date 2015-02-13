@@ -174,7 +174,7 @@ def wall_in_front(walls, position, heading):
             if (wall["wallO"] == 'H' and (wall["wallX"] == position["x"] or wall["wallX"] + 1 == position["x"]) and wall["wallY"] == position["y"] + 1):
                 return True
         else:
-            print >> sys.stder, "Invalid heading in wall_in_front"
+            print >> sys.stderr, "Invalid heading in wall_in_front"
 
     return False
 
