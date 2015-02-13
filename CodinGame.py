@@ -211,7 +211,7 @@ def moves_to_clear_wall(walls, position, heading):
 # Wrapper for recursive function win_path_exists
 # Determines endzone based on playerId and sets order based on endzone to maximize efficiency based off Sean's guesses
 def is_possible_to_win(position, playerId, putX, putY, wallO, walls):
-    new_walls = walls
+    new_walls = list(walls)
     new_walls.append({"wallX": putX, "wallY": putY, "wallO": wallO})
 
     if playerId == 0:
