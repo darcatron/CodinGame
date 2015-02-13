@@ -1,6 +1,4 @@
 # TODO 
-# 5 IF THE WALL BLOCKS OFF A PLAYERS PATH
-
 # 8 Does not take into account heading when counting the number of moves to clear a wall (right now only works for moving right and left)
 
 # NOTES!
@@ -114,7 +112,6 @@ def is_in_bounds(position):
     
 #Checks if a wall is valid by seeing if another wall is already there or if it goes out of bounds    
 def is_valid_wall(players, playerId, walls, putX, putY, wallO):
-    #TODO 5
     global w, h
 
     if no_walls_left(players[playerId]) \
@@ -280,6 +277,7 @@ def win_path_exists(walls, position, endzone, order, visited):
 # playerCount: number of players (2 or 3)
 # myId: id of my player (0 = 1st player, 1 = 2nd player, ...)
 w, h, playerCount, myId = [int(i) for i in raw_input().split()]
+locked = False
 
 # game loop
 while 1:
