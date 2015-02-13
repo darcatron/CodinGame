@@ -222,6 +222,7 @@ def is_possible_to_win(walls, position, playerId):
         order = ["DOWN", "RIGHT", "LEFT", "UP"]
 
     visited = [[0 for x in range(9)] for y in range(9)]
+
     return win_path_exists(walls, position, endzone, order, visited)
 
 
@@ -231,6 +232,12 @@ def win_path_exists(walls, position, endzone, order, visited):
 
     # base case
     if endzone == "RIGHT" and position["x"] == w - 1:
+        # in endzone, path exists
+        return True
+    elif endzone == "LEFT" and position["x"] == 0:
+        # in endzone, path exists
+        return True
+    elif endzone == "DOWN" and position["y"] == h -1:
         # in endzone, path exists
         return True
 
@@ -256,7 +263,7 @@ def win_path_exists(walls, position, endzone, order, visited):
             # 1. the next_position is in bounds
             # 2. there's not a wall blocking the way
             # 3. the next_position hasn't been visited yet
-        if is_in_bounds(next_position) and not wall_in_front(walls, position, heading and not visited[next_position["x"]][next_position["y"]]):
+        if is_in_bounds(next_position) and not wall_in_front(walls, position, heading) and not visited[next_position["x"]][next_position["y"]]:
             # Recursive case
             if win_path_exists(walls, next_position, endzone, order, visited):
                 return True
