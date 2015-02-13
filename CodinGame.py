@@ -36,7 +36,7 @@ def first_player_of_two(players, walls):
             putY = players[hisId]["y"] - 1
         putX = w - 1
         
-        if is_valid_wall(players, myId, walls, putX, putY, "V"):
+        if is_valid_wall(players[myId], walls, putX, putY, "V"):
             print putX, putY, "V"
         else:
             print >> sys.stderr, "Wall not valid in corner! FIX IT"
@@ -117,32 +117,38 @@ def is_in_bounds(position):
     return True
     
 #Checks if a wall is valid by seeing if another wall is already there or if it goes out of bounds    
-def is_valid_wall(players, myId, walls, putX, putY, wallO):
-    #TODO 5, 6
+def is_valid_wall(player, walls, putX, putY, wallO):
+    #TODO 5
     global w, h
 
-    if players[myId]["wallsLeft"] == 0: 
+    if player["wallsLeft"] == 0: 
         # no walls left
         return False
     elif {"wallX": putX, "wallY": putY, "wallO": wallO} in walls:
         # wall already exists
         return False
     elif wallO == "V":
-        if {"wallX": putX - 1, "wallY": putY + 1, "wallO": "H"} in walls:
-            # wall crosses an existing horizontal wall
-            return False
         if putX >= w or (putY >= h - 1) or putX == 0:
             #wall is out of bounds
             return False
-    elif wallO == "H":
-        if {"wallX": putX + 1, "wallY": putY - 1, "wallO": "V"} in walls:
-            # wall crosses an existing vertical wall
+        if {"wallX": putX - 1, "wallY": putY + 1, "wallO": "H"} in walls:
+            # wall crosses an existing horizontal wall
             return False
+        if {"wallX": putX, "wallY": putY + 1, "wallO": "V"} in walls:
+            # new wall would overlay part of existing wall
+            return False
+    elif wallO == "H":
         if (putX >= w - 1) or putY >= h or putY == 0:
             #wall is out of bounds
             return False
+        if {"wallX": putX + 1, "wallY": putY - 1, "wallO": "V"} in walls:
+            # wall crosses an existing vertical wall
+            return False
+        if {"wallX": putX + 1, "wallY": putY, "wallO": "H"} in walls:
+            # new wall would overlay part of existing wall
+            return False
     
-    return True
+    return True # wall is good with the world
 
 
 #checks if wall is in front of given postion, based on the direction the player intends to move
