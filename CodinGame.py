@@ -277,7 +277,6 @@ def win_path_exists(walls, position, endzone, order, visited):
 # playerCount: number of players (2 or 3)
 # myId: id of my player (0 = 1st player, 1 = 2nd player, ...)
 w, h, playerCount, myId = [int(i) for i in raw_input().split()]
-locked = False
 
 # game loop
 while 1:
