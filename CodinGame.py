@@ -255,16 +255,6 @@ def win_path_exists(walls, position, endzone, order, visited):
 
     return False
 
-
-    # loop thru array
-        # call correct sub fun
-    # return false
-
-# def sub fun up
-# down
-# left
-# right
-
     
 
 # w: width of the board
