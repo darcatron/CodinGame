@@ -1,6 +1,5 @@
 # TODO 
 # 5 IF THE WALL BLOCKS OFF A PLAYERS PATH
-# 6 IF THE WALL OVERLAYS PART OF ANOTHER WALL
 
 # 8 Does not take into account heading when counting the number of moves to clear a wall (right now only works for moving right and left)
 
@@ -201,7 +200,61 @@ def moves_to_clear_wall(walls, position, heading):
         return [movesUp, "UP"]
 
 
+def is_possible_to_win(walls, position, playerId):
+    if playerId == 0:
+        endzone = "RIGHT"
+        order = ["RIGHT", "UP", "DOWN", "LEFT"]
+    elif playerId == 1:
+        endzone = "LEFT"
+        order = ["LEFT", "UP", "DOWN", "RIGHT"]
+    elif playerId == 2:
+        endzone = "DOWN"
+        order = ["DOWN", "RIGHT", "LEFT", "UP"]
 
+    visited = [[0 for x in range(9)] for y in range(9)]
+    return win_path_exists(walls, position, endzone, order, visited)
+
+
+def win_path_exists(walls, position, endzone, order, visited):
+    global w, h
+    if endzone == "RIGHT" and position["x"] == w - 1:
+        # in endzone, path exists
+        return True
+
+    # flag cell as visited
+    visited[position["x"]][position["y"]] = 1
+
+    for direction in order:
+        if direction == "RIGHT":
+            heading = direction
+            next_position = {"x": position["x"] + 1, "y": position["y"]}
+        elif direction == "UP":
+            heading = direction
+            next_position = {"x": position["x"], "y": position["y"] - 1}
+        elif direction == "DOWN":
+            heading = direction
+            next_position = {"x": position["x"], "y": position["y"] + 1}
+        elif direction == "LEFT":
+            heading = direction
+            next_position = {"x": position["x"] - 1, "y": position["y"]}
+
+        if is_in_bounds(next_position) and not wall_in_front(walls, position, heading and not visited[next_position["x"]][next_position["y"]]):
+            if win_path_exists(walls, next_position, endzone, order, visited):
+                return True
+
+    return False
+
+
+    # loop thru array
+        # call correct sub fun
+    # return false
+
+# def sub fun up
+# down
+# left
+# right
+
+    
 
 # w: width of the board
 # h: height of the board
