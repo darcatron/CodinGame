@@ -108,7 +108,7 @@ def is_corner(position):
 def is_in_bounds(position):
     global w, h
     
-    if (position["x"] >= w or position["y"] >= h):
+    if (position["x"] >= w or position["x"] < 0 or position["y"] >= h or position["y"] < 0):
         return False
     return True
     
@@ -121,7 +121,7 @@ def is_valid_wall(players, playerId, walls, putX, putY, wallO):
         or wall_exists(putX, putY, wallO, walls) \
         or wall_out_of_bounds(putX, putY, wallO, walls) \
         or wall_crosses_or_overlays(putX, putY, wallO, walls) \
-        or not is_possible_to_win(walls, players[playerId], playerId):
+        or not is_possible_to_win(players[playerId], playerId, putX, putY, wallO, walls):
         return False
     
     # wall is good with the world

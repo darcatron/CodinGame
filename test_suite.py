@@ -53,3 +53,16 @@ walls = [{'wallY': 6, 'wallX': 5, 'wallO': 'V'},
 print is_valid_wall(players, me, walls, 6, 7, "V")
 print "^should be false^"
 
+wallz = [{'wallY': 6, 'wallX': 5, 'wallO': 'V'}, 
+         {"wallX": 2, "wallY": 2, "wallO": "H"}, 
+         {"wallX": 4, "wallY": 5, "wallO": "V"},
+         {"wallX": 4, "wallY": 7, "wallO": "V"},
+         {"wallX": 4, "wallY": 5, "wallO": "H"},
+         {"wallX": 6, "wallY": 3, "wallO": "V"},
+         {"wallX": 6, "wallY": 3, "wallO": "H"},
+         {"wallX": 8, "wallY": 3, "wallO": "V"},
+         {"wallX": 8, "wallY": 0, "wallO": "V"},
+         {"wallX": 7, "wallY": 2, "wallO": "H"}]
+print is_valid_wall(players, me, walls, 7, 1, "H")
+print "^should be false^ for blocking player"
+         
