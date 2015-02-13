@@ -120,35 +120,45 @@ def is_valid_wall(player, walls, putX, putY, wallO):
     #TODO 5
     global w, h
 
-    if player["wallsLeft"] == 0: 
-        # no walls left
+    if no_walls_left(player) \
+        or wall_exists(putX, putY, wallO, walls) \
+        or wall_out_of_bounds(putX, putY, wallO, walls) \
+        or wall_crosses_or_overlays(putX, putY, wallO, walls):
         return False
-    elif {"wallX": putX, "wallY": putY, "wallO": wallO} in walls:
-        # wall already exists
-        return False
-    elif wallO == "V":
-        if putX >= w or (putY >= h - 1) or putX == 0:
-            #wall is out of bounds
-            return False
-        if {"wallX": putX - 1, "wallY": putY + 1, "wallO": "H"} in walls:
-            # wall crosses an existing horizontal wall
-            return False
-        if {"wallX": putX, "wallY": putY + 1, "wallO": "V"} in walls:
-            # new wall would overlay part of existing wall
-            return False
-    elif wallO == "H":
-        if (putX >= w - 1) or putY >= h or putY == 0:
-            #wall is out of bounds
-            return False
-        if {"wallX": putX + 1, "wallY": putY - 1, "wallO": "V"} in walls:
-            # wall crosses an existing vertical wall
-            return False
-        if {"wallX": putX + 1, "wallY": putY, "wallO": "H"} in walls:
-            # new wall would overlay part of existing wall
-            return False
     
-    return True # wall is good with the world
+    # wall is good with the world
+    return True
 
+
+def no_walls_left(player):
+    return player["wallsLeft"] == 0
+
+def wall_exists(putX, putY, wallO, walls):
+    return {"wallX": putX, "wallY": putY, "wallO": wallO} in walls
+
+def wall_out_of_bounds(putX, putY, wallO, walls):
+    global w, h # grid width and height
+
+    if wallO == "V":
+        return (putX >= w) or (putY >= h - 1) or (putX == 0)
+    elif wallO == "H":
+        return (putX >= w - 1) or (putY >= h) or (putY == 0)
+    else:
+        print >> sys.stderr, "Err: wall_out_of_bounds got strange orientation"
+
+def wall_crosses_or_overlays(putX, putY, wallO, walls):
+    if wallO == "V":
+        # wall crosses an existing horizontal wall 
+        # or wall would overlay part of existing vertical wall
+        return {"wallX": putX - 1, "wallY": putY + 1, "wallO": "H"} in walls \
+                or {"wallX": putX, "wallY": putY + 1, "wallO": "V"} in walls
+    elif wallO == "H":
+        # wall crosses an existing vertical wall 
+        # or wall would overlay part of existing horizontal wall
+        return {"wallX": putX + 1, "wallY": putY - 1, "wallO": "V"} in walls \
+                or {"wallX": putX + 1, "wallY": putY, "wallO": "H"} in walls
+    else:
+        print >> sys.stderr, "Err: wall_crosses_or_overlays got strange orientation"
 
 #checks if wall is in front of given postion, based on the direction the player is heading
 def wall_in_front(walls, position, heading):
