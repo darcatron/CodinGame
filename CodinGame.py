@@ -8,6 +8,8 @@
 # HANDLE
 # For lockdown -- Worst Case Scenario: They lock out our exit before we completely lock theirs
 # Know when opponent runs out of walls, if they do and we have the shortest path, then we win and there is no need to block with walls
+# Oppo starts walling from the start and we can't do lockdown
+
 
 import sys, math, random
 
@@ -15,11 +17,44 @@ import sys, math, random
 ################ 2 PLAYER STRATEGY #####################
 ########################################################
 def two_players(players, walls, myId):
-    if myId == 0:
-        first_player_of_two(players, walls)
-    else:
-        second_player_of_two(players, walls)
+    global locked, in_lockdown
 
+    if in_lockdown:
+        lockdown(players, walls, myId)
+    elif (): # TODO oppo is one from winning
+        # TODO vertical wall them forcing them towards using gap strategy us and blocking their exit
+    else:
+        move = best_path()
+
+        if (): # TODO move makes us go "backwards" 
+            in_lockdown = True # make sure it is not a corner case, literally -- whatever that means
+            lockdown(players, walls, myId)
+        else:
+            print move
+
+
+def lockdown(players, walls, myId):
+    global locked
+
+    force_direction = None
+    moves_to_clear = moves_to_clear_wall(walls, players[myId], "RIGHT" if myId == 0 else "LEFT")
+    his_id = 1 if myId == 0 else 0
+
+    if locked:
+        pass
+    elif (moves_to_clear == 1):
+        # build vertical wall in front of oppo making gap in our direction
+        # force_direction = gap pos (UP or DOWN)
+    elif (moves_to_clear == 2):
+        if (force_direction == "UP" and players[hisId]["y"] >= players[myId]["y"]): # oppo is equal or above us
+            # build horizontal above him
+        elif (force_direction == "DOWN" and players[hisId]["y"] <= players[myId]["y"]): # oppo is equal or below us
+            # build H wall below him
+    elif (next_wall_can_lock()): # we must be in the cage with him
+        # close his exit
+        locked = True
+
+   print best_path() # TODO
 
 #Strategy for two players if we move first
 def first_player_of_two(players, walls):
@@ -277,6 +312,7 @@ def win_path_exists(walls, position, endzone, order, visited):
 # playerCount: number of players (2 or 3)
 # myId: id of my player (0 = 1st player, 1 = 2nd player, ...)
 w, h, playerCount, myId = [int(i) for i in raw_input().split()]
+locked, in_lockdown = False, False
 
 # game loop
 while 1:
