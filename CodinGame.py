@@ -200,6 +200,8 @@ def moves_to_clear_wall(walls, position, heading):
         return [movesUp, "UP"]
 
 
+# Wrapper for recursive function win_path_exists
+# Determines endzone based on playerId and sets order based on endzone to maximize efficiency based off Sean's guesses
 def is_possible_to_win(walls, position, playerId):
     if playerId == 0:
         endzone = "RIGHT"
@@ -215,8 +217,11 @@ def is_possible_to_win(walls, position, playerId):
     return win_path_exists(walls, position, endzone, order, visited)
 
 
+# Recursively finds if a path to the endzone exists
 def win_path_exists(walls, position, endzone, order, visited):
     global w, h
+
+    # base case
     if endzone == "RIGHT" and position["x"] == w - 1:
         # in endzone, path exists
         return True
@@ -224,6 +229,7 @@ def win_path_exists(walls, position, endzone, order, visited):
     # flag cell as visited
     visited[position["x"]][position["y"]] = 1
 
+    # Get heading and next_position depending on where the endzone was (order depends on endzone)
     for direction in order:
         if direction == "RIGHT":
             heading = direction
@@ -238,7 +244,12 @@ def win_path_exists(walls, position, endzone, order, visited):
             heading = direction
             next_position = {"x": position["x"] - 1, "y": position["y"]}
 
+        # Does 3 checks:
+            # 1. the next_position is in bounds
+            # 2. there's not a wall blocking the way
+            # 3. the next_position hasn't been visited yet
         if is_in_bounds(next_position) and not wall_in_front(walls, position, heading and not visited[next_position["x"]][next_position["y"]]):
+            # Recursive case
             if win_path_exists(walls, next_position, endzone, order, visited):
                 return True
 
