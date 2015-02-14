@@ -48,13 +48,13 @@ def lockdown(players, walls, myId):
     if locked:
         pass
     elif (moves_to_clear == 1):
-        # build vertical wall in front of oppo making gap in our direction
-        # force_direction = gap pos (UP or DOWN)
+        # TODO build vertical wall in front of oppo making gap in our direction
+        # TODO force_direction = gap pos (UP or DOWN)
     elif (moves_to_clear == 2):
         if (force_direction == "UP" and players[his_id]["y"] >= players[myId]["y"]): # oppo is equal or above us
-            # build horizontal above him
+            # TODO build horizontal above him
         elif (force_direction == "DOWN" and players[his_id]["y"] <= players[myId]["y"]): # oppo is equal or below us
-            # build H wall below him
+            # TODO build H wall below him
     elif (next_wall_can_lock()): # we must be in the cage with him
         # close his exit
         locked = True
@@ -326,6 +326,12 @@ def best_path(players, playerId, walls):
         return gap_strategy(players, playerId, walls)
 
 def gap_strategy(players, playerId, walls):
+    # TODO check to make sure there is a path to the gap that goes thru the gap and not just around the endzone to reach the gap
+        # goal: from where we are, we want to move one column forward.
+        #       use a function to check if a path exists from a position on that column to our position
+        #       E.g. we are at 3,4 and there is a wall in front, we want to get to a pos in col 4
+        #           we run path_exists((4,8), 3,4), if true, it's not blocked, if false gap is on other side
+        #       Using restricted is_possible_to_win
     endzone = find_endzone(playerId)
 
     if wall_in_front(walls, players[playerId], endzone):
@@ -347,11 +353,6 @@ def gap_strategy(players, playerId, walls):
 
 def direction_to_gap(walls, position, endzone):
     # TODO returns the direction of the gap "UP" or "DOWN" for players 1 and 2, "LEFT" or "RIGHT" for player 3
-    # TODO check to make sure there is a path to the gap that goes thru the gap and not just around the endzone to reach the gap
-        # goal: from where we are, we want to move one column forward.
-        #       use a function to check if a path exists from a position on that column to our position
-        #       E.g. we are at 3,4 and there is a wall in front, we want to get to a pos in col 4
-        #           we run path_exists((4,8), 3,4), if true, it's not blocked, if false gap is on other side
 
 # w: width of the board
 # h: height of the board
