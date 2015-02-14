@@ -143,6 +143,16 @@ def find_opposite_endzone(playerId):
     elif playerId == 2:
         return "UP"
 
+def opposite_direction(direction):
+    if direction == "LEFT":
+        return "RIGHT"
+    elif direction == "RIGHT":
+        return "LEFT"
+    elif direction == "UP":
+        return "DOWN"
+    elif direction == "DOWN":
+        return "UP" 
+
 def is_one_move_from_win(players, playerId, walls):
     global w, h
     endzone = find_endzone(playerId)
@@ -320,11 +330,17 @@ def gap_strategy(players, playerId, walls):
 
     if wall_in_front(walls, players[playerId], endzone):
         dir_to_move = direction_to_gap(walls, players[playerId], endzone)
-
-        if wall_in_front(walls, players[playerId], dir_to_move):
+        # if (verify dir_to_move towards gap is a good idea (aka is not a dead end) 
+        #    using restricted is_possible_to_win)
+            if wall_in_front(walls, players[playerId], dir_to_move):
+                return find_opposite_endzone(playerId) # move backwards. This triggers lockdown
+            # verfy moving towards gap
+            return dir_to_move
+        # check if we have to go backwards or down
+        if wall_in_front(walls, players[playerId], opposite_direction(dir_to_move))):
             return find_opposite_endzone(playerId) # move backwards. This triggers lockdown
-        
-        return dir_to_move
+        # verfy moving towards gap
+        return opposite_direction(dir_to_move)
     else:
         # move forward towards endzone
         return endzone
