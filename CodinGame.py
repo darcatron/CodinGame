@@ -4,6 +4,7 @@
 # NOTES!
 #EVERYTHING IS PASSED BY REFERENCE!!!!!!
 # LOCKDOWN: force both of us into our forward and therefore his backward which puts us both in the same boat and go shortest path to win!
+# if only in lockdown, they can block our exit before we block theirs
 
 # HANDLE
 # For lockdown -- Worst Case Scenario: They lock out our exit before we completely lock theirs
@@ -18,15 +19,19 @@ import sys, math, random
 ########################################################
 def two_players(players, walls, myId):
     global locked, in_lockdown
+    his_id = 1 if myId == 0 else 0
 
     if in_lockdown:
         lockdown(players, walls, myId)
-    elif (): # TODO oppo is one from winning
-        # TODO vertical wall them forcing them towards using gap strategy us and blocking their exit
+    elif (is_one_move_from_win(players, his_id, walls)): 
+        # oppo is about to win!
+        # TODO vertical wall them, forcing them towards us, using gap strategy, and blocking their exit
+        pass
     else:
         move = best_path()
 
-        if (): # TODO move makes us go "backwards" 
+        if (move == find_opposite_endzone(myId)): 
+            # move makes us go "backwards" 
             in_lockdown = True # make sure it is not a corner case, literally -- whatever that means
             lockdown(players, walls, myId)
         else:
@@ -46,53 +51,16 @@ def lockdown(players, walls, myId):
         # build vertical wall in front of oppo making gap in our direction
         # force_direction = gap pos (UP or DOWN)
     elif (moves_to_clear == 2):
-        if (force_direction == "UP" and players[hisId]["y"] >= players[myId]["y"]): # oppo is equal or above us
+        if (force_direction == "UP" and players[his_id]["y"] >= players[myId]["y"]): # oppo is equal or above us
             # build horizontal above him
-        elif (force_direction == "DOWN" and players[hisId]["y"] <= players[myId]["y"]): # oppo is equal or below us
+        elif (force_direction == "DOWN" and players[his_id]["y"] <= players[myId]["y"]): # oppo is equal or below us
             # build H wall below him
     elif (next_wall_can_lock()): # we must be in the cage with him
         # close his exit
         locked = True
 
-   print best_path() # TODO
+   print best_path()
 
-#Strategy for two players if we move first
-def first_player_of_two(players, walls):
-    myId = 0
-    hisId = 1
-    #if he is in corner, wall him
-    if is_corner(players[hisId]):
-        if players[hisId]["y"] == 0:
-            putY = 0
-        else:
-            putY = players[hisId]["y"] - 1
-        putX = w - 1
-        
-        if is_valid_wall(players, myId, walls, putX, putY, "V"):
-            print putX, putY, "V"
-        else:
-            print >> sys.stderr, "Wall not valid in corner! FIX IT"
-    
-    else:
-        #if wall to our right
-        if wall_in_front(walls, players[myId], "RIGHT"):
-            results = moves_to_clear_wall(walls, players[myId], "RIGHT")
-            movesToClearWall = results[0]
-            bestDirection = results[1]
-            if (movesToClearWall > 1):
-                print random.randrange(1,9), random.randrange(0,9), "V"
-            else:
-                #clear the wall
-                print bestDirection
-        else:
-            print "RIGHT"
-        
-
-#Strategy for two players if we move second
-def second_player_of_two(players, walls):
-    myId = 1
-    pass
-    
 
 ########################################################
 ################ 3 PLAYER STRATEGY #####################
@@ -159,6 +127,37 @@ def is_valid_wall(players, playerId, walls, putX, putY, wallO):
     # wall is good with the world
     return True
 
+def find_endzone(playerId):
+    if playerId == 0:
+        return "RIGHT"
+    elif playerId == 1:
+        return "LEFT"
+    elif playerId == 2:
+        return "DOWN"
+
+def find_opposite_endzone(playerId):
+    if playerId == 0:   
+        return "LEFT"
+    elif playerId == 1:
+        return "RIGHT"
+    elif playerId == 2:
+        return "UP"
+
+def is_one_move_from_win(players, playerId, walls):
+    global w, h
+    endzone = find_endzone(playerId)
+
+    if (endzone == "RIGHT"):
+        if (players[playerId]["x"] == w - 2 and not wall_in_front(walls, players[playerId], endzone)):
+            return True
+    if (endzone == "LEFT"):
+        if (players[playerId]["x"] == 1 and not wall_in_front(walls, players[playerId], endzone)):
+            return True
+    if (endzone == "DOWN"):
+        if (players[playerId]["y"] == h - 2 and not wall_in_front(walls, players[playerId], endzone)):
+            return True
+
+    return False            
 
 def no_walls_left(player):
     return player["wallsLeft"] == 0
@@ -242,10 +241,14 @@ def moves_to_clear_wall(walls, position, heading):
 
 # Wrapper for recursive function win_path_exists
 # Determines endzone based on playerId and sets order based on endzone to maximize efficiency based off Sean's guesses
+# TODO add param to this func that lets user restrict the positions checked. 
+#      Depending on the direction of intended travel, mark the column in the opposite direction as visited 
+#      e.g. if in 3,4 and we intend to go UP then we mark 3,5 & 3,6 & 3,7 & 3,8 as visited
 def is_possible_to_win(position, playerId, putX, putY, wallO, walls):
     new_walls = list(walls)
     new_walls.append({"wallX": putX, "wallY": putY, "wallO": wallO})
 
+    # TODO can use helper func if u want
     if playerId == 0:
         endzone = "RIGHT"
         order = ["RIGHT", "UP", "DOWN", "LEFT"]
@@ -305,7 +308,34 @@ def win_path_exists(walls, position, endzone, order, visited):
 
     return False
 
-    
+def best_path(players, playerId, walls):
+    if (in_lockdown): # TODO check if fails many times
+        # TODO go towards "our" exit, this might be the same as the gap_strategy(). Check it when gap is written
+        pass
+    else:
+        return gap_strategy(players, playerId, walls)
+
+def gap_strategy(players, playerId, walls):
+    endzone = find_endzone(playerId)
+
+    if wall_in_front(walls, players[playerId], endzone):
+        dir_to_move = direction_to_gap(walls, players[playerId], endzone)
+
+        if wall_in_front(walls, players[playerId], dir_to_move):
+            return find_opposite_endzone(playerId) # move backwards. This triggers lockdown
+        
+        return dir_to_move
+    else:
+        # move forward towards endzone
+        return endzone
+
+def direction_to_gap(walls, position, endzone):
+    # TODO returns the direction of the gap "UP" or "DOWN" for players 1 and 2, "LEFT" or "RIGHT" for player 3
+    # TODO check to make sure there is a path to the gap that goes thru the gap and not just around the endzone to reach the gap
+        # goal: from where we are, we want to move one column forward.
+        #       use a function to check if a path exists from a position on that column to our position
+        #       E.g. we are at 3,4 and there is a wall in front, we want to get to a pos in col 4
+        #           we run path_exists((4,8), 3,4), if true, it's not blocked, if false gap is on other side
 
 # w: width of the board
 # h: height of the board
