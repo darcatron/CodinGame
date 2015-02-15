@@ -1,3 +1,7 @@
+#############################################################################
+####################### is_valid_wall #######################################
+#############################################################################
+
 players = [{"x": 0, "y": 0, "wallsLeft": 10}]
 me = 0
 w = h = 9
@@ -65,4 +69,38 @@ wallz = [{'wallY': 6, 'wallX': 5, 'wallO': 'V'},
          {"wallX": 7, "wallY": 2, "wallO": "H"}]
 print is_valid_wall(players, me, walls, 7, 1, "H")
 print "^should be false^ for blocking player"
-         
+      
+
+
+
+#############################################################################
+################# is_possible_to_win restricted case ########################
+#############################################################################
+
+players = [{"x": 4, "y": 5, "wallsLeft": 10}]
+myId = 0
+w = h = 9
+
+
+# Test win is possible with gap up
+walls = [{'wallX': 5, 'wallY': 5, 'wallO': 'V'},
+         {'wallX': 5, 'wallY': 3, 'wallO': 'V'},
+         {'wallX': 5, 'wallY': 3, 'wallO': 'H'},
+         {'wallX': 7, 'wallY': 1, 'wallO': 'H'},
+         {'wallX': 6, 'wallY': 1, 'wallO': 'H'}]
+
+print is_possible_to_win(players[myId], myId, walls, "UP")
+print "^should be true by going through gap up^"
+
+
+# Test win isn't possible with gap up
+
+
+
+
+
+# Test win is possible with gap down
+
+
+
+# Test win isn't possible with gap down
