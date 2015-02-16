@@ -352,18 +352,11 @@ def best_path(players, playerId, walls):
 # Sean thinks it is possible that we might have to add is_possible_to_win before every return that hasn't been
 # checked yet (or at least most of them)
 def gap_strategy(players, playerId, walls):
-    # TODO check to make sure there is a path to the gap that goes thru the gap and not just around the endzone to reach the gap
-        # goal: from where we are, we want to move one column forward.
-        #       use a function to check if a path exists from a position on that column to our position
-        #       E.g. we are at 3,4 and there is a wall in front, we want to get to a pos in col 4
-        #           we run path_exists((4,8), 3,4), if true, it's not blocked, if false gap is on other side
-        #       Using restricted is_possible_to_win
     endzone = find_endzone(playerId)
 
     if wall_in_front(walls, players[playerId], endzone):
         dir_to_move = direction_to_gap(walls, players[playerId], endzone)
-        
-        # TODO 
+
         if (is_possible_to_win(players[playerId], playerId, walls, dir_to_move): 
             # moving towards gap is a good idea (aka is not a dead end) using restricted is_possible_to_win
             if wall_in_front(walls, players[playerId], dir_to_move):
