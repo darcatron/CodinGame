@@ -169,16 +169,72 @@ print "^should be true by going through gap up^"
 
 
 # Test win isn't possible with gap up
+walls = [{'wallX': 5, 'wallY': 5, 'wallO': 'V'},
+         {'wallX': 5, 'wallY': 5, 'wallO': 'H'},
+         {'wallX': 7, 'wallY': 3, 'wallO': 'V'},
+         {'wallX': 6, 'wallY': 3, 'wallO': 'H'},
+         {'wallX': 8, 'wallY': 1, 'wallO': 'V'},
+         {'wallX': 6, 'wallY': 1, 'wallO': 'H'},
+         {'wallX': 6, 'wallY': 0, 'wallO': 'V'}]
 
-
-
+print is_possible_to_win(players[myId], myId, walls, "UP")
+print "^should be false by trying to go through blocked gap up^"
 
 
 # Test win is possible with gap down
+walls = [{'wallX': 5, 'wallY': 4, 'wallO': 'V'},
+         {'wallX': 5, 'wallY': 6, 'wallO': 'H'},
+         {'wallX': 7, 'wallY': 6, 'wallO': 'V'},
+         {'wallX': 6, 'wallY': 8, 'wallO': 'H'}]
 
-
+print is_possible_to_win(players[myId], myId, walls, "DOWN")
+print "^should be true by going through gap down^"
 
 # Test win isn't possible with gap down
+walls = [{'wallX': 5, 'wallY': 4, 'wallO': 'V'},
+         {'wallX': 5, 'wallY': 6, 'wallO': 'H'},
+         {'wallX': 7, 'wallY': 6, 'wallO': 'V'},
+         {'wallX': 6, 'wallY': 8, 'wallO': 'H'},
+         {'wallX': 8, 'wallY': 7, 'wallO': 'V'}]
+
+print is_possible_to_win(players[myId], myId, walls, "DOWN")
+print "^should be false by trying to go through blocked gap down^"
+
+# Simple test isn't possible down
+walls = [{'wallX': 5, 'wallY': 4, 'wallO': 'V'},
+         {'wallX': 5, 'wallY': 6, 'wallO': 'V'},
+         {'wallX': 5, 'wallY': 8, 'wallO': 'H'},
+         {'wallX': 7, 'wallY': 7, 'wallO': 'V'}]
+
+print is_possible_to_win(players[myId], myId, walls, "DOWN")
+print "^should be false by trying to go through blocked gap down^"
+
+# Simple test is possible down
+walls = [{'wallX': 5, 'wallY': 4, 'wallO': 'V'},
+         {'wallX': 5, 'wallY': 6, 'wallO': 'V'},
+         {'wallX': 5, 'wallY': 8, 'wallO': 'H'}]
+
+print is_possible_to_win(players[myId], myId, walls, "DOWN")
+print "^should be true by going through gap down^"
+
+
+# Simple test win is possible with gap up
+walls = [{'wallX': 5, 'wallY': 5, 'wallO': 'V'},
+         {'wallX': 5, 'wallY': 3, 'wallO': 'V'}]
+
+print is_possible_to_win(players[myId], myId, walls, "UP")
+print "^should be true by going through gap up^"
+
+
+# Simple test win isn't possible with gap up
+walls = [{'wallX': 5, 'wallY': 5, 'wallO': 'V'},
+         {'wallX': 5, 'wallY': 3, 'wallO': 'V'},
+         {'wallX': 5, 'wallY': 1, 'wallO': 'V'},
+         {'wallX': 5, 'wallY': 1, 'wallO': 'H'},
+         {'wallX': 7, 'wallY': 0, 'wallO': 'V'}]
+
+print is_possible_to_win(players[myId], myId, walls, "UP")
+print "^should be false by trying to go through blocked gap up^"
 
 
 ###################################
@@ -373,3 +429,4 @@ print "^should be False^ for one move to win endzone: DOWN"
 players = [{}, {}, {"x": 3, "y": 2, "wallsLeft": 10}]
 print is_one_move_from_win(players, me, walls)
 print "^should be False^ for one move to win endzone: DOWN"
+
