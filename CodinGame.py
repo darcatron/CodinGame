@@ -93,7 +93,13 @@ def third_player_of_three(players, walls):
 ################ HELPER FUNCTIONS #####################
 #######################################################
 
-#Checks to see if given position is a corner, returns bool
+def is_even(numb):
+    return not is_odd(numb)
+
+def is_odd(numb):
+    return (numb % 2)
+
+# Checks to see if given position is a corner, returns bool
 def is_corner(position):
     global w, h
     
@@ -113,7 +119,7 @@ def is_in_bounds(position):
         return False
     return True
     
-#Checks if a wall is valid by seeing if another wall is already there or if it goes out of bounds    
+# Checks if a wall is valid by seeing if another wall is already there or if it goes out of bounds    
 def is_valid_wall(players, playerId, walls, putX, putY, wallO):
     global w, h
 
@@ -121,7 +127,7 @@ def is_valid_wall(players, playerId, walls, putX, putY, wallO):
         or wall_exists(putX, putY, wallO, walls) \
         or wall_out_of_bounds(putX, putY, wallO, walls) \
         or wall_crosses_or_overlays(putX, putY, wallO, walls) \
-        or not is_possible_to_win(players[playerId], playerId, putX, putY, wallO, walls):
+        or not is_possible_to_win(players[playerId], playerId, walls + [{"wallX": putX, "wallY": putY, "wallO": wallO}]):
         return False
     
     # wall is good with the world
@@ -153,6 +159,7 @@ def opposite_direction(direction):
     elif direction == "DOWN":
         return "UP" 
 
+# UNTESTED
 def is_one_move_from_win(players, playerId, walls):
     global w, h
     endzone = find_endzone(playerId)
@@ -254,6 +261,7 @@ def moves_to_clear_wall(walls, position, heading):
 # TODO add param to this func that lets user restrict the positions checked. 
 #      Depending on the direction of intended travel, mark the column in the opposite direction as visited 
 #      e.g. if in 3,4 and we intend to go UP then we mark 3,5 & 3,6 & 3,7 & 3,8 as visited
+# UNTESTED - restricted version
 def is_possible_to_win(position, playerId, putX, putY, wallO, walls):
     new_walls = list(walls)
     new_walls.append({"wallX": putX, "wallY": putY, "wallO": wallO})
@@ -318,13 +326,14 @@ def win_path_exists(walls, position, endzone, order, visited):
 
     return False
 
+# UNTESTED
 def best_path(players, playerId, walls):
     if (in_lockdown): # TODO check if fails many times
         # TODO go towards "our" exit, this might be the same as the gap_strategy(). Check it when gap is written
         pass
     else:
         return gap_strategy(players, playerId, walls)
-
+# UNTESTED
 def gap_strategy(players, playerId, walls):
     # TODO check to make sure there is a path to the gap that goes thru the gap and not just around the endzone to reach the gap
         # goal: from where we are, we want to move one column forward.
@@ -350,9 +359,49 @@ def gap_strategy(players, playerId, walls):
     else:
         # move forward towards endzone
         return endzone
-
+# UNTESTED
+# Pre Condition: wall must be in front of position
 def direction_to_gap(walls, position, endzone):
-    # TODO returns the direction of the gap "UP" or "DOWN" for players 1 and 2, "LEFT" or "RIGHT" for player 3
+    pos_x, pos_y = None, None
+
+    # static starting positions for wall check (x pos for V walls, y pos for H walls)
+    if (endzone == "LEFT"):
+        pos_x = position['x']
+    elif (endzone == "RIGHT"):
+        pos_x = position['x'] + 1
+    elif (endzone == "DOWN"):
+        pos_y = position['y'] + 1
+
+    # based on endzone and cur pos, determine wall starting pos 
+    # (y pos for V walls, x pos for H walls)
+    if (endzone == "LEFT" or endzone == "RIGHT"):
+        if (wall_exists(pos_x, position['y'], 'V', walls)):
+            pos_y = position['y']
+        elif (wall_exists(pos_x, position['y'] - 1, 'V', walls)):
+            pos_y = position['y'] - 1
+
+        if (pos_y == None):
+            print >> sys.stderr, "Err: no wall in front of position in direction_to_gap"
+        elif (is_even(pos_y)):
+             # walls starts on even y pos -> gap is bottom (0 is even)
+            return "DOWN"
+        return "UP"
+    elif (endzone == "DOWN"):
+        if (wall_exists(position['x'], pos_y, 'H', walls)):
+            pos_x = position['x']
+        elif (wall_exists(position['x'] - 1, pos_y, 'H', walls)):
+            pos_x = position['x'] - 1 
+
+        if (pos_y == None):
+            print >> sys.stderr, "Err: no wall in front of position in direction_to_gap"
+        elif (is_even(pos_x)):
+            # if walls starts on even x pos -> gap is right (0 is even)
+            return "RIGHT"
+        return "LEFT"
+    else:
+        print >> sys.stderr, "Err: Invalid endzone given to direction_to_gap"
+
+
 
 # w: width of the board
 # h: height of the board
