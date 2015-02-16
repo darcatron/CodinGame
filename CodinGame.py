@@ -162,7 +162,7 @@ def opposite_direction(direction):
     elif direction == "DOWN":
         return "UP" 
 
-# UNTESTED
+# TODO UNTESTED
 def is_one_move_from_win(players, playerId, walls):
     global w, h
     endzone = find_endzone(playerId)
@@ -262,6 +262,7 @@ def moves_to_clear_wall(walls, position, heading):
 # Wrapper for recursive function win_path_exists
 # Determines endzone based on playerId and sets order based on endzone to maximize efficiency based off Sean's guesses
 # gap_direction is None for standard call of this function, and is either "UP" or "DOWN" for restricted case
+# TODO UNTESTED for restricted
 def is_possible_to_win(position, playerId, walls, gap_direction=None):
     global w, h
     # TODO? can use helper func to select endzone
@@ -342,14 +343,14 @@ def win_path_exists(walls, position, endzone, order, visited):
 
     return False
 
-# UNTESTED
+# TODO UNTESTED
 def best_path(players, playerId, walls):
     if (in_lockdown): # TODO check if fails many times
         # TODO go towards "our" exit, this might be the same as the gap_strategy(). Check it when gap is written
         pass
     else:
         return gap_strategy(players, playerId, walls)
-# UNTESTED
+# TODO UNTESTED
 def gap_strategy(players, playerId, walls):
     # TODO check to make sure there is a path to the gap that goes thru the gap and not just around the endzone to reach the gap
         # goal: from where we are, we want to move one column forward.
@@ -361,21 +362,22 @@ def gap_strategy(players, playerId, walls):
 
     if wall_in_front(walls, players[playerId], endzone):
         dir_to_move = direction_to_gap(walls, players[playerId], endzone)
-        # if (verify dir_to_move towards gap is a good idea (aka is not a dead end) 
-        #    using restricted is_possible_to_win)
+        
+        # TODO 
+        if (is_possible_to_win(players[playerId], playerId, walls, dir_to_move): 
+            # moving towards gap is a good idea (aka is not a dead end) using restricted is_possible_to_win
             if wall_in_front(walls, players[playerId], dir_to_move):
                 return find_opposite_endzone(playerId) # move backwards. This triggers lockdown
-            # verfy moving towards gap
             return dir_to_move
-        # check if we have to go backwards or down
-        if wall_in_front(walls, players[playerId], opposite_direction(dir_to_move))):
+        elif wall_in_front(walls, players[playerId], opposite_direction(dir_to_move))):
             return find_opposite_endzone(playerId) # move backwards. This triggers lockdown
-        # verfy moving towards gap
+        
+        # otherwise go other direction
         return opposite_direction(dir_to_move)
     else:
         # move forward towards endzone
         return endzone
-# UNTESTED
+
 # Pre Condition: wall must be in front of position
 def direction_to_gap(walls, position, endzone):
     pos_x, pos_y = None, None
