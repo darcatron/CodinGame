@@ -262,7 +262,6 @@ def moves_to_clear_wall(walls, position, heading):
 # Wrapper for recursive function win_path_exists
 # Determines endzone based on playerId and sets order based on endzone to maximize efficiency based off Sean's guesses
 # gap_direction is None for standard call of this function, and is either "UP" or "DOWN" for restricted case
-# TODO UNTESTED for restricted
 def is_possible_to_win(position, playerId, walls, gap_direction=None):
     global w, h
     # TODO? can use helper func to select endzone
@@ -351,6 +350,8 @@ def best_path(players, playerId, walls):
     else:
         return gap_strategy(players, playerId, walls)
 # TODO UNTESTED
+# Sean thinks it is possible that we might have to add is_possible_to_win before every return that hasn't been
+# checked yet (or at least most of them)
 def gap_strategy(players, playerId, walls):
     # TODO check to make sure there is a path to the gap that goes thru the gap and not just around the endzone to reach the gap
         # goal: from where we are, we want to move one column forward.
