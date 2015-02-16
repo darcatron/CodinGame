@@ -2,7 +2,7 @@
 # 8 Does not take into account heading when counting the number of moves to clear a wall (right now only works for moving right and left)
 
 # NOTES!
-#EVERYTHING IS PASSED BY REFERENCE!!!!!!
+# EVERYTHING IS PASSED BY REFERENCE!!!!!!
 # LOCKDOWN: force both of us into our forward and therefore his backward which puts us both in the same boat and go shortest path to win!
 # if only in lockdown, they can block our exit before we block theirs
 
@@ -10,6 +10,7 @@
 # For lockdown -- Worst Case Scenario: They lock out our exit before we completely lock theirs
 # Know when opponent runs out of walls, if they do and we have the shortest path, then we win and there is no need to block with walls
 # Oppo starts walling from the start and we can't do lockdown
+# build_horizontal_wall doesnt work for 3 players
 
 import sys, math, random
 
@@ -51,14 +52,17 @@ def lockdown(players, walls, myId):
         pass
     elif (moves_to_clear == 2):
         if (force_direction == "UP" and players[his_id]["y"] >= players[myId]["y"]): # oppo is equal or above us
-            # TODO build horizontal above him
-            pass
+            # build H wall above him
+            build_horizontal_wall(players, his_id, force_direction, walls)
+            return
         elif (force_direction == "DOWN" and players[his_id]["y"] <= players[myId]["y"]): # oppo is equal or below us
-            # TODO build H wall below him
-            pass
-    elif (next_wall_can_lock()): # we must be in the cage with him
-        # close his exit
+            # build H wall below him
+            build_horizontal_wall(players, his_id, force_direction, walls)
+            return
+    elif (next_wall_can_lock()): # TODO we must be in the cage with him
+        # TODO close his exit
         locked = True
+        return
 
     print best_path()
 
@@ -410,6 +414,38 @@ def direction_to_gap(walls, position, endzone):
         return "LEFT"
     else:
         print >> sys.stderr, "Err: Invalid endzone given to direction_to_gap"
+
+# TODO UNTESTED
+def build_horizontal_wall(players, player_id, wall_dir, walls):
+    endzone = find_endzone(player_id)
+    pos_x = players[player_id]['x']
+    pos_y = players[player_id]['y']
+
+    if (endzone == "LEFT"):
+        if (wall_dir == "UP"):
+            if (is_valid_wall(players, player_id, walls, pos_x, pos_y, 'H')):
+                print pos_x, pos_y, 'H' 
+            else:
+                print >> sys.stderr, "Err: invalid wall -- aka ohhhh shitttt, we got some casses to add in build horizontal wall"
+        elif (wall_dir == "DOWN"):
+            if (is_valid_wall(players, player_id, walls, pos_x, pos_y + 1, 'H')):
+                print pos_x, pos_y + 1, 'H'
+            else:
+                print >> sys.stderr, "Err: invalid wall -- aka ohhhh shitttt, we got some casses to add in build horizontal wall"
+    elif (endzone == "RIGHT"):
+        if (wall_dir == "UP"):
+            if (is_valid_wall(players, player_id, walls, pos_x - 1, pos_y, 'H')):
+                print
+            else:
+                print >> sys.stderr, "Err: invalid wall -- aka ohhhh shitttt, we got some casses to add in build horizontal wall"
+        elif (wall_dir == "DOWN"):
+            if (is_valid_wall(players, player_id, walls, pos_x - 1, pos_y + 1, 'H')):
+                print
+            else:
+                print >> sys.stderr, "Err: invalid wall -- aka ohhhh shitttt, we got some casses to add in build horizontal wall"
+    else:
+        print >> sys.stderr, "Err: build_horizontal_wall was given nonexistant endzone"
+
 
 
 
