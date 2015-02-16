@@ -286,12 +286,12 @@ def is_possible_to_win(position, playerId, walls, gap_direction=None):
         # e.g. if in 3,4 and we intend to go UP then we mark 3,5 & 3,6 & 3,7 & 3,8 as visited
         if gap_direction == "UP" and position["y"] != h - 1:
             # Make all cells below position visited so we don't try for bottom end
-            for i in range(position["y"] + 1, h - 1):
+            for i in range(position["y"] + 1, h):
                 visited[position["x"]][i] = True
 
         elif gap_direction == "DOWN" and position["y"] != 0:
             # Make all cells above position visited so we don't try for upper end
-            for i in range(position["y"] - 1, 0):
+            for i in range(0, position["y"]):
                 visited[position["x"]][i] = True
 
         else:
