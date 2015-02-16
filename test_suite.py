@@ -457,6 +457,74 @@ print "^ Should be UP ^"
 
 
 #######################################
+
+##########################
+# Tests for should_lock  #
+##########################
+
+# With my endzone to RIGHT
+##########################
+myId = 0
+hisId = 1
+
+players = [{"x": 6, "y": 5}, {"x": 2, "y": 3}]
+lockdown_h_walls = [{'wallX': 1, 'wallY': 3, 'wallO': 'H'}]
+
+# One horizontal from locking to middle of vertical wall, he is below horizontal walls
+walls = [{'wallX': 1, 'wallY': 5, 'wallO': 'V'},
+         {'wallX': 1, 'wallY': 3, 'wallO': 'V'},
+         {'wallX': 1, 'wallY': 3, 'wallO': 'H'},
+         {'wallX': 5, 'wallY': 2, 'wallO': 'V'}]
+
+
+
+print should_lock(players, hisId, walls, myId)
+print "^ Should print 4 for being one horizontal away from middle of vertical wall, him below ^"
+
+# One horizontal from locking to top of vertical wall, he is below horizontal walls
+walls = [{'wallX': 1, 'wallY': 5, 'wallO': 'V'},
+         {'wallX': 1, 'wallY': 3, 'wallO': 'V'},
+         {'wallX': 1, 'wallY': 3, 'wallO': 'H'},
+         {'wallX': 5, 'wallY': 3, 'wallO': 'V'}]
+
+print should_lock(players, hisId, walls, myId)
+print "^ Should print 4 for being one horizontal away from top of vertical wall, him below ^"
+
+
+# One horizontal from locking to top of vertical wall, he is below horizontal walls by more than 1 cell
+players = [{"x": 6, "y": 5}, {"x": 2, "y": 5}]
+walls = [{'wallX': 1, 'wallY': 5, 'wallO': 'V'},
+         {'wallX': 1, 'wallY': 3, 'wallO': 'V'},
+         {'wallX': 1, 'wallY': 3, 'wallO': 'H'},
+         {'wallX': 5, 'wallY': 3, 'wallO': 'V'}]
+
+print should_lock(players, hisId, walls, myId)
+print "^ Should print 4 for being one horizontal away from top of vertical wall, him below by more than 1 cell^"
+
+
+
+# One horizontal from locking to bottom of vertical wall, he is above horizontal walls
+players = [{"x": 6, "y": 5}, {"x": 2, "y": 2}]
+walls = [{'wallX': 1, 'wallY': 5, 'wallO': 'V'},
+         {'wallX': 1, 'wallY': 3, 'wallO': 'V'},
+         {'wallX': 1, 'wallY': 3, 'wallO': 'H'},
+         {'wallX': 5, 'wallY': 1, 'wallO': 'V'}]
+
+print should_lock(players, hisId, walls, myId)
+print "^ Should print 4 for being one horizontal away from bottom of vertical wall, him above ^"
+
+
+# One horizontal from locking to bottom of vertical wall, he is above horizontal walls by more than 1
+players = [{"x": 6, "y": 5}, {"x": 2, "y":  1}]
+walls = [{'wallX': 1, 'wallY': 5, 'wallO': 'V'},
+         {'wallX': 1, 'wallY': 3, 'wallO': 'V'},
+         {'wallX': 1, 'wallY': 3, 'wallO': 'H'},
+         {'wallX': 5, 'wallY': 1, 'wallO': 'V'}]
+
+print should_lock(players, hisId, walls, myId)
+print "^ Should print 4 for being one horizontal away from bottom of vertical wall, him above by more than 1 cell^"
+
+
 ## Tests for build_horizontal_wall  ###
 #######################################
 me = 0

@@ -47,14 +47,15 @@ def lockdown(players, walls, my_id):
 
     if locked:
         pass # best_path()
-    elif (next_wall_can_lock()): # TODO we must be in the cage with him
+    elif (should_lock(players, his_id, walls, myId)): # TODO we must be in the cage with him
         # TODO close his exit
         locked = True
         return
     elif (moves_to_clear == 1):
          build_vertical_wall_lockdown(players, his_id, wall_pos, walls)
     elif (moves_to_clear == 2):
-        if (force_direction == "UP" and players[his_id]["y"] >= players[my_id]["y"]): # oppo is equal or above us
+        # TODO This will only trigger for the first horizontal wall, we need something to keep placing h_walls until should_lock is true
+        if (force_direction == "UP" and players[his_id]["y"] >= players[myId]["y"]): # oppo is equal or above us
             # build H wall above him
             build_horizontal_wall_lockdown(players, his_id, force_direction, walls)
             return
@@ -509,6 +510,100 @@ def build_vertical_wall_lockdown(players, receiver_id, wall_pos, walls):
     else:  
         print sys.stderr, "build_vertical_wall_lockdown got an endzone that has not yet been implemented"
 
+
+# TODO Untested!
+# Helper for should_lock that checks one wall at a time
+# Returns +/- 4 for case when we are one horizontal wall from locking, +/- 3 when there is
+# a one cell gap, or False otherwise
+def should_h_wall_lock(player, h_wall, walls, wall_offset):
+    if {"wallX": h_wall["wallX"] + wall_offset, "wallY": h_wall["wallY"] - 1, "wallO": 'V'} in walls:
+        # We are one horizontal wall away from the lock
+        return wall_offset
+    
+    if player["y"] >= h_wall["wallY"]:
+        # he is on lower side of walls
+        if {"wallX": h_wall["wallX"] + wall_offset, "wallY": h_wall["wallY"], "wallO": 'V'} in walls:
+            # We are one horizontal wall away from the lock
+            return wall_offset
+    elif player["y"] < h_wall["wallY"]:
+        # he is on upper side of walls
+        if {"wallX": h_wall["wallX"] + wall_offset, "wallY": h_wall["wallY"] - 2, "wallO": 'V'} in walls:
+            # We are one horizontal wall away from the lock
+            return wall_offset
+    
+    return False
+
+
+# TODO UNTESTED
+# TODO Maybe should return the offset variable so it could return either positive or negative 3 or 4 for the true case
+# Returns 4 if we are one horizontal wall from lockdown
+# Returns 3 if we currently have a one cell gap between our horizontal wall and the vertical, which
+# will require 2 or 3 walls to lock
+# Returns False (0) if otherwise
+def should_lock(players, his_id, walls, my_id):
+    global lockdown_h_walls
+
+    endzone = find_endzone(my_id)
+
+    # Offsets change from positive to negative depending on what direction we are locking in, which
+    # is based off our endzone
+    if endzone == "RIGHT":
+        one_h_wall_offset = 4
+        one_cell_gap_offset = 3
+    elif endzone == "LEFT":
+        one_h_wall_offset = -4
+        one_cell_gap_offset = -3
+
+    h_wall = lockdown_h_walls[-1] # get last h_wall placed
+
+    if should_h_wall_lock(players[his_id], h_wall, walls, one_h_wall_offset):
+        return 4
+    elif should_h_wall_lock(players[his_id], h_wall, walls, one_cell_gap_offset):
+        return 3
+
+    return False
+
+# TODO
+def lock(players, walls, my_id):
+    global lockdown_h_walls, locked
+
+    his_id = 1 if my_id == 0 else 0
+    his_endzone = find_endzone(his_id)
+    num_away = should_lock(players, his_id, walls, my_id)
+
+    last_h_wall = lockdown_h_walls[-1]
+
+    if num_away == 4:
+        # TODO build h wall to lock
+        locked = True
+    elif num_away == 3:
+        # TODO This section is hard. See the three factors that Matush wrote on paper
+        if his_endzone == "RIGHT":
+            pass
+        elif his_endzone == "LEFT":
+            pass
+        elif his_endzone == "DOWN":
+            print >> sys.stderr, "3 players not implemented for lock yet!"
+        else:
+            print >> sys.stderr, "bad endzone for lock function"
+
+    else:
+        print >> sys.stderr, "Bad num_away in lock function"
+
+    locked = True
+
+
+# TODO
+def lock_2_3():
+    if wall_exists(last_h_wall["wallX"] + 2, last_h_wall["wallY"] - 1, 'V', walls):
+        if is_valid_wall(players, my_id, walls, last_h_wall["wallX"] + 1, last_h_wall["wallY"] - 1, 'H'):
+            print last_h_wall["wallX"] + 1, last_h_wall["wallY"] - 1, 'H'
+        else:
+            print >> sys.stderr, "Invalid wall 3 for right endzone"
+    elif is_valid_wall(players, my_id, walls, last_h_wall["wallX"] + 2, last_h_wall["wallY"] - 1, 'V'):
+        print last_h_wall["wallX"] + 2, last_h_wall["wallY"] - 1, 'V'
+    else:
+        print >> sys.stderr, "Invalid wall 2 for right endzone"
 
 
 # w: width of the board
