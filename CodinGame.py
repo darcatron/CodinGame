@@ -46,7 +46,7 @@ def lockdown(players, walls, my_id):
     moves_to_clear = moves_to_clear_wall(walls, players[his_id], "RIGHT" if his_id == 0 else "LEFT")
 
     if locked:
-        pass
+        pass # best_path()
     elif (next_wall_can_lock()): # TODO we must be in the cage with him
         # TODO close his exit
         locked = True
