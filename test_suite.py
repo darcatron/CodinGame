@@ -1,9 +1,9 @@
-players = [{"x": 0, "y": 0, "wallsLeft": 10}]
-me = 0
 w = h = 9
 ###################################
 #### Tests for is_valid_wall ######
 ###################################
+players = [{"x": 0, "y": 0, "wallsLeft": 10}]
+me = 0
 
 walls = [{'wallX': 5, 'wallY': 6, 'wallO': 'V'}, 
          {'wallX': 8, 'wallY': 5, 'wallO': 'V'}]
@@ -179,3 +179,197 @@ print "^should be true by going through gap up^"
 
 
 # Test win isn't possible with gap down
+
+
+###################################
+# Tests for is_one_move_from_win  #
+###################################
+
+# Right before endzone, no wall #
+me = 0
+players = [{"x": 7, "y": 0, "wallsLeft": 10}]
+walls = []
+print is_one_move_from_win(players, me, walls)
+print "^should be True^ for one move to win endzone: RIGHT"
+
+players = [{"x": 7, "y": 3, "wallsLeft": 10}]
+walls = []
+print is_one_move_from_win(players, me, walls)
+print "^should be True^ for one move to win endzone: RIGHT"
+
+players = [{"x": 7, "y": 7, "wallsLeft": 10}]
+walls = []
+print is_one_move_from_win(players, me, walls)
+print "^should be True^ for one move to win endzone: RIGHT"
+
+me = 1
+players = [{}, {"x": 1, "y": 0, "wallsLeft": 10}]
+walls = []
+print is_one_move_from_win(players, me, walls)
+print "^should be True^ for one move to win endzone: LEFT"
+
+players = [{}, {"x": 1, "y": 3, "wallsLeft": 10}]
+walls = []
+print is_one_move_from_win(players, me, walls)
+print "^should be True^ for one move to win endzone: LEFT"
+
+players = [{}, {"x": 1, "y": 7, "wallsLeft": 10}]
+walls = []
+print is_one_move_from_win(players, me, walls)
+print "^should be True^ for one move to win endzone: LEFT"
+
+me = 2
+players = [{}, {}, {"x": 0, "y": 7, "wallsLeft": 10}]
+walls = []
+print is_one_move_from_win(players, me, walls)
+print "^should be True^ for one move to win endzone: DOWN"
+
+players = [{}, {}, {"x": 3, "y": 7, "wallsLeft": 10}]
+walls = []
+print is_one_move_from_win(players, me, walls)
+print "^should be True^ for one move to win endzone: DOWN"
+
+players = [{}, {}, {"x": 7, "y": 7, "wallsLeft": 10}]
+walls = []
+print is_one_move_from_win(players, me, walls)
+print "^should be True^ for one move to win endzone: DOWN"
+
+# Random areas, no walls #
+me = 0
+players = [{"x": 6, "y": 0, "wallsLeft": 10}]
+walls = []
+print is_one_move_from_win(players, me, walls)
+print "^should be False^ for one move to win endzone: RIGHT"
+
+players = [{"x": 2, "y": 3, "wallsLeft": 10}]
+walls = []
+print is_one_move_from_win(players, me, walls)
+print "^should be False^ for one move to win endzone: RIGHT"
+
+players = [{"x": 4, "y": 7, "wallsLeft": 10}]
+walls = []
+print is_one_move_from_win(players, me, walls)
+print "^should be False^ for one move to win endzone: RIGHT"
+
+me = 1
+players = [{}, {"x": 6, "y": 0, "wallsLeft": 10}]
+walls = []
+print is_one_move_from_win(players, me, walls)
+print "^should be False^ for one move to win endzone: LEFT"
+
+players = [{}, {"x": 2, "y": 3, "wallsLeft": 10}]
+walls = []
+print is_one_move_from_win(players, me, walls)
+print "^should be False^ for one move to win endzone: LEFT"
+
+players = [{}, {"x": 4, "y": 7, "wallsLeft": 10}]
+walls = []
+print is_one_move_from_win(players, me, walls)
+print "^should be False^ for one move to win endzone: LEFT"
+
+me = 2
+players = [{}, {}, {"x": 6, "y": 0, "wallsLeft": 10}]
+walls = []
+print is_one_move_from_win(players, me, walls)
+print "^should be False^ for one move to win endzone: DOWN"
+
+players = [{}, {}, {"x": 2, "y": 3, "wallsLeft": 10}]
+walls = []
+print is_one_move_from_win(players, me, walls)
+print "^should be False^ for one move to win endzone: DOWN"
+
+players = [{}, {}, {"x": 4, "y": 6, "wallsLeft": 10}]
+walls = []
+print is_one_move_from_win(players, me, walls)
+print "^should be False^ for one move to win endzone: DOWN"
+
+
+# Last column, walls #
+me = 0
+players = [{"x": 7, "y": 1, "wallsLeft": 10}]
+walls = [{'wallX': 8, 'wallY': 1, 'wallO': 'V'}]
+print is_one_move_from_win(players, me, walls)
+print "^should be False^ for one move to win endzone: RIGHT"
+
+players = [{"x": 7, "y": 4, "wallsLeft": 10}]
+walls = [{'wallX': 8, 'wallY': 1, 'wallO': 'V'},
+         {'wallX': 8, 'wallY': 5, 'wallO': 'V'}]
+print is_one_move_from_win(players, me, walls)
+print "^should be True^ for one move to win endzone: RIGHT"
+
+players = [{"x": 7, "y": 8, "wallsLeft": 10}]
+walls = [{'wallX': 8, 'wallY': 1, 'wallO': 'V'},
+         {'wallX': 8, 'wallY': 5, 'wallO': 'V'},
+         {'wallX': 6, 'wallY': 8, 'wallO': 'H'}]
+print is_one_move_from_win(players, me, walls)
+print "^should be True^ for one move to win endzone: RIGHT"
+
+me = 1
+players = [{}, {"x": 1, "y": 7, "wallsLeft": 10}]
+walls = [{'wallX': 1, 'wallY': 7, 'wallO': 'V'}]
+print is_one_move_from_win(players, me, walls)
+print "^should be False^ for one move to win endzone: LEFT"
+
+players = [{}, {"x": 1, "y": 4, "wallsLeft": 10}]
+walls = [{'wallX': 1, 'wallY': 7, 'wallO': 'V'},
+         {'wallX': 1, 'wallY': 5, 'wallO': 'V'}]
+print is_one_move_from_win(players, me, walls)
+print "^should be True^ for one move to win endzone: LEFT"
+
+players = [{}, {"x": 1, "y": 1, "wallsLeft": 10}]
+walls = [{'wallX': 1, 'wallY': 7, 'wallO': 'V'},
+         {'wallX': 1, 'wallY': 5, 'wallO': 'V'},
+         {'wallX': 1, 'wallY': 1, 'wallO': 'H'}]
+print is_one_move_from_win(players, me, walls)
+print "^should be True^ for one move to win endzone: LEFT"
+
+me = 2
+players = [{}, {}, {"x": 1, "y": 7, "wallsLeft": 10}]
+walls = [{'wallX': 1, 'wallY': 8, 'wallO': 'H'}]
+print is_one_move_from_win(players, me, walls)
+print "^should be False^ for one move to win endzone: DOWN"
+
+players = [{}, {}, {"x": 4, "y": 7, "wallsLeft": 10}]
+walls = [{'wallX': 1, 'wallY': 8, 'wallO': 'H'},
+         {'wallX': 5, 'wallY': 8, 'wallO': 'H'}]
+print is_one_move_from_win(players, me, walls)
+print "^should be True^ for one move to win endzone: DOWN"
+
+players = [{}, {}, {"x": 7, "y": 7, "wallsLeft": 10}]
+walls = [{'wallX': 1, 'wallY': 8, 'wallO': 'V'},
+         {'wallX': 5, 'wallY': 8, 'wallO': 'V'},
+         {'wallX': 8, 'wallY': 7, 'wallO': 'H'}]
+print is_one_move_from_win(players, me, walls)
+print "^should be True^ for one move to win endzone: DOWN"
+
+# Random areas, walls #
+me = 0
+players = [{"x": 4, "y": 4, "wallsLeft": 10}]
+walls = [{'wallX': 5, 'wallY': 4, 'wallO': 'V'},
+         {'wallX': 4, 'wallY': 2, 'wallO': 'V'},
+         {'wallX': 2, 'wallY': 2, 'wallO': 'H'}]
+print is_one_move_from_win(players, me, walls)
+print "^should be False^ for one move to win endzone: RIGHT"
+
+players = [{"x": 3, "y": 2, "wallsLeft": 10}]
+# same walls as before
+print is_one_move_from_win(players, me, walls)
+print "^should be False^ for one move to win endzone: RIGHT"
+
+me = 1
+players = [{}, {"x": 4, "y": 4, "wallsLeft": 10}]
+print is_one_move_from_win(players, me, walls)
+print "^should be False^ for one move to win endzone: LEFT"
+
+players = [{}, {"x": 3, "y": 2, "wallsLeft": 10}]
+print is_one_move_from_win(players, me, walls)
+print "^should be False^ for one move to win endzone: LEFT"
+
+me = 2
+players = [{}, {}, {"x": 4, "y": 4, "wallsLeft": 10}]
+print is_one_move_from_win(players, me, walls)
+print "^should be False^ for one move to win endzone: DOWN"
+
+players = [{}, {}, {"x": 3, "y": 2, "wallsLeft": 10}]
+print is_one_move_from_win(players, me, walls)
+print "^should be False^ for one move to win endzone: DOWN"

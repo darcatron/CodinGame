@@ -162,7 +162,6 @@ def opposite_direction(direction):
     elif direction == "DOWN":
         return "UP" 
 
-# TODO UNTESTED
 def is_one_move_from_win(players, playerId, walls):
     global w, h
     endzone = find_endzone(playerId)
