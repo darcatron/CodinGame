@@ -553,6 +553,8 @@ def should_lock(players, his_id, walls, my_id):
 # TODO if the oppo is near the top or bottom edge, building a wall may close off both paths. We will need to account for
 #  this once we test and see how often it happens
 def lock(players, walls, my_id):
+    global locked
+
     num_away = should_lock(players, his_id, walls, my_id)
     last_h_wall = lockdown_h_walls[-1]
     his_id = 1 if my_id == 0 else 0
@@ -562,11 +564,12 @@ def lock(players, walls, my_id):
     pos_x, pos_y = None, None
 
     if num_away == 4:
-        # TODO build h wall to lock
-        # TODO this locked = True happens in lock_2_3 or lock_1_4 
-        # locked = True
+        if (is_valid_wall(players, my_id, walls, last_h_wall["wallX"] + 2, last_h_wall["wallY"], last_h_wall["wallO"])):
+            print last_h_wall["wallX"] + 2, last_h_wall["wallY"], last_h_wall["wallO"]
+            locked = True
+        else:
+            print >> sys.stderr, "Err: Invalid H wall in lock num_away == 4"
     elif num_away == 3:
-        # TODO This section is hard. See the three factors that Matush wrote on paper
         if his_endzone == "RIGHT":
             pos_x = last_h_wall["wallX"] + 3
             pos_y = last_h_wall["wallY"] - 1
@@ -581,14 +584,10 @@ def lock(players, walls, my_id):
         if (wall_exists(pos_x, pos_y, 'V', walls)):
             lock_2_3(pos_x, pos_y, walls, players, my_id)
         else:
-            # TODO
             lock_1_4(players, walls, my_id)
 
     else:
         print >> sys.stderr, "Bad num_away in lock function"
-
-    # TODO this locked = True happens in lock_2_3 or lock_1_4 
-    # locked = True
 
 
 # TODO UNTESTED
