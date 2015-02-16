@@ -46,6 +46,10 @@ def lockdown(players, walls, myId):
 
     if locked:
         pass
+    elif (next_wall_can_lock()): # TODO we must be in the cage with him
+        # TODO close his exit
+        locked = True
+        return
     elif (moves_to_clear == 1):
         # TODO build vertical wall in front of oppo making gap in our direction
         # TODO force_direction = gap pos (UP or DOWN)
@@ -59,10 +63,6 @@ def lockdown(players, walls, myId):
             # build H wall below him
             build_horizontal_wall(players, his_id, force_direction, walls)
             return
-    elif (next_wall_can_lock()): # TODO we must be in the cage with him
-        # TODO close his exit
-        locked = True
-        return
 
     print best_path()
 
