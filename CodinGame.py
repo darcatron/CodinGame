@@ -564,8 +564,46 @@ def should_lock(players, his_id, walls, my_id):
     return False
 
 # TODO
-def lock():
-    pass
+def lock(players, walls, my_id):
+    global lockdown_h_walls, locked
+
+    his_id = 1 if my_id == 0 else 0
+    his_endzone = find_endzone(his_id)
+    num_away = should_lock(players, his_id, walls, my_id)
+
+    last_h_wall = lockdown_h_walls[-1]
+
+    if num_away == 4:
+        # TODO build h wall to lock
+        locked = True
+    elif num_away == 3:
+        # TODO This section is hard. See the three factors that Matush wrote on paper
+        if his_endzone == "RIGHT":
+            pass
+        elif his_endzone == "LEFT":
+            pass
+        elif his_endzone == "DOWN":
+            print >> sys.stderr, "3 players not implemented for lock yet!"
+        else:
+            print >> sys.stderr, "bad endzone for lock function"
+
+    else:
+        print >> sys.stderr, "Bad num_away in lock function"
+
+    locked = True
+
+
+# TODO
+def lock_2_3():
+    if wall_exists(last_h_wall["wallX"] + 2, last_h_wall["wallY"] - 1, 'V', walls):
+        if is_valid_wall(players, my_id, walls, last_h_wall["wallX"] + 1, last_h_wall["wallY"] - 1, 'H'):
+            print last_h_wall["wallX"] + 1, last_h_wall["wallY"] - 1, 'H'
+        else:
+            print >> sys.stderr, "Invalid wall 3 for right endzone"
+    elif is_valid_wall(players, my_id, walls, last_h_wall["wallX"] + 2, last_h_wall["wallY"] - 1, 'V'):
+        print last_h_wall["wallX"] + 2, last_h_wall["wallY"] - 1, 'V'
+    else:
+        print >> sys.stderr, "Invalid wall 2 for right endzone"
 
 
 # w: width of the board
