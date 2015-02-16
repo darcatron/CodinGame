@@ -31,7 +31,7 @@ def two_players(players, walls, my_id):
         # vertical wall them, forcing them towards us, using gap strategy, and blocking their exit
         build_vertical_wall_lockdown(players, his_id, wall_pos, walls)
     else:
-        move = best_path()
+        move = best_path(players, my_id, walls)
 
         if (move == find_opposite_endzone(my_id)): 
             # move makes us go "backwards" 
@@ -74,7 +74,7 @@ def lockdown(players, walls, my_id):
             build_horizontal_wall_lockdown(players, his_id, oppo_gap, walls)
             return
 
-    print best_path()
+    print best_path(players, my_id, walls)
 
 
 ########################################################
@@ -260,7 +260,7 @@ def moves_to_clear_wall(walls, position, heading):
 
     if heading == "LEFT" or heading == "RIGHT":
         direction = "y"
-    elif heading == "UP" or heading == "DOWN"
+    elif heading == "UP" or heading == "DOWN":
         direction = "x"
     else:
         print >> sys.stderr, "Bad heading for moves_to_clear_wall"
@@ -291,7 +291,6 @@ def moves_to_clear_wall(walls, position, heading):
 # Determines endzone based on playerId and sets order based on endzone to maximize efficiency based off Sean's guesses
 # gap_direction is None for standard call of this function, and is either "UP" or "DOWN" for restricted case
 def is_possible_to_win(position, playerId, walls, gap_direction=None):
-    # TODO? can use helper func to select endzone
     if playerId == 0:
         endzone = "RIGHT"
         order = ["RIGHT", "UP", "DOWN", "LEFT"]
@@ -384,12 +383,12 @@ def gap_strategy(players, playerId, walls):
     if wall_in_front(walls, players[playerId], endzone):
         dir_to_move = direction_to_gap(walls, players[playerId], endzone)
 
-        if (is_possible_to_win(players[playerId], playerId, walls, dir_to_move): 
+        if (is_possible_to_win(players[playerId], playerId, walls, dir_to_move)): 
             # moving towards gap is a good idea (aka is not a dead end) using restricted is_possible_to_win
             if wall_in_front(walls, players[playerId], dir_to_move):
                 return find_opposite_endzone(playerId) # move backwards. This triggers lockdown
             return dir_to_move
-        elif wall_in_front(walls, players[playerId], opposite_direction(dir_to_move))):
+        elif wall_in_front(walls, players[playerId], opposite_direction(dir_to_move)):
             return find_opposite_endzone(playerId) # move backwards. This triggers lockdown
         
         # otherwise go other direction
@@ -563,7 +562,6 @@ def should_lock(players, his_id, walls, my_id):
 
     return False
 
-# TODO
 # TODO if the oppo is near the top or bottom edge, building a wall may close off both paths. We will need to account for
 #  this once we test and see how often it happens
 def lock(players, walls, my_id):
@@ -705,7 +703,7 @@ def lock_1_4(players, walls, my_id):
                 print >> sys.stderr, "Err: Invalid wall 4 in lock_1_4"
     else:
         # else build 1
-        if (is_valid_wall(players, my_id, walls, pos_x_1, pos_y_1, 'V'):
+        if is_valid_wall(players, my_id, walls, pos_x_1, pos_y_1, 'V'):
             print pos_x_1, pos_y_1, 'V'
         else:
              print >> sys.stderr, "Err: Invalid wall 1 in lock_1_4"
