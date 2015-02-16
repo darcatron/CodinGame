@@ -454,3 +454,58 @@ print "^ Should be DOWN ^"
 # player is on same level as destination player but in middle of board
 print direction_towards_player({"x": 4, "y": 4}, {"x": 5, "y": 4})
 print "^ Should be UP ^"
+
+
+#######################################
+## Tests for build_horizontal_wall  ###
+#######################################
+me = 0
+players = [{"x": 7, "y": 3, "wallsLeft": 10}]
+walls = [{'wallX': 8, 'wallY': 3, 'wallO': 'V'},
+         {'wallX': 8, 'wallY': 5, 'wallO': 'V'}]
+build_horizontal_wall(players, me, "UP", walls)
+print "^should be 6 3 H^ for horizontal block UP (Test 5)"
+
+players = [{"x": 7, "y": 3, "wallsLeft": 10}]
+walls = [{'wallX': 8, 'wallY': 3, 'wallO': 'V'},
+         {'wallX': 8, 'wallY': 5, 'wallO': 'V'}]
+build_horizontal_wall(players, me, "DOWN", walls)
+print "^should be 6 4 H^ for horizontal block DOWN (Test 6)"
+
+players = [{"x": 7, "y": 6, "wallsLeft": 10}]
+walls = [{'wallX': 8, 'wallY': 3, 'wallO': 'V'},
+         {'wallX': 8, 'wallY': 5, 'wallO': 'V'}]
+build_horizontal_wall(players, me, "DOWN", walls)
+print "^should be 6 7 H^ for horizontal block DOWN (Test 7)"
+
+players = [{"x": 7, "y": 6, "wallsLeft": 10}]
+walls = [{'wallX': 8, 'wallY': 3, 'wallO': 'V'},
+         {'wallX': 8, 'wallY': 5, 'wallO': 'V'}]
+build_horizontal_wall(players, me, "UP", walls)
+print "^should be 6 6 H^ for horizontal block UP (Test 8)"
+
+
+me = 1
+players = [{},{"x": 2, "y": 3, "wallsLeft": 10}]
+walls = [{'wallX': 2, 'wallY': 3, 'wallO': 'V'},
+         {'wallX': 2, 'wallY': 5, 'wallO': 'V'}]
+build_horizontal_wall(players, me, "UP", walls)
+print "^should be 2 3 H^ for horizontal block UP (Test 1)"
+
+players = [{},{"x": 2, "y": 3, "wallsLeft": 10}]
+walls = [{'wallX': 2, 'wallY': 3, 'wallO': 'V'},
+         {'wallX': 2, 'wallY': 5, 'wallO': 'V'}]
+build_horizontal_wall(players, me, "DOWN", walls)
+print "^should be 2 4 H^ for horizontal block DOWN (Test 2)"
+
+players = [{},{"x": 2, "y": 6, "wallsLeft": 10}]
+walls = [{'wallX': 2, 'wallY': 3, 'wallO': 'V'},
+         {'wallX': 2, 'wallY': 5, 'wallO': 'V'}]
+build_horizontal_wall(players, me, "DOWN", walls)
+print "^should be 2 7 H^ for horizontal block DOWN (Test 3)"
+
+players = [{},{"x": 2, "y": 6, "wallsLeft": 10}]
+walls = [{'wallX': 2, 'wallY': 3, 'wallO': 'V'},
+         {'wallX': 2, 'wallY': 5, 'wallO': 'V'}]
+build_horizontal_wall(players, me, "UP", walls)
+print "^should be 2 6 H^ for horizontal block UP (Test 4)"

@@ -435,8 +435,9 @@ def direction_to_gap(walls, position, endzone):
     else:
         print >> sys.stderr, "Err: Invalid endzone given to direction_to_gap"
 
-# TODO UNTESTED
 def build_horizontal_wall(players, player_id, wall_dir, walls):
+    global lockdown_h_walls
+
     endzone = find_endzone(player_id)
     pos_x = players[player_id]['x']
     pos_y = players[player_id]['y']
@@ -444,23 +445,27 @@ def build_horizontal_wall(players, player_id, wall_dir, walls):
     if (endzone == "LEFT"):
         if (wall_dir == "UP"):
             if (is_valid_wall(players, player_id, walls, pos_x, pos_y, 'H')):
-                print pos_x, pos_y, 'H' 
+                print pos_x, pos_y, 'H'
+                lockdown_h_walls.append({"wallX": pos_x, "wallY": pos_y}) 
             else:
                 print >> sys.stderr, "Err: invalid wall -- aka ohhhh shitttt, we got some casses to add in build horizontal wall"
         elif (wall_dir == "DOWN"):
             if (is_valid_wall(players, player_id, walls, pos_x, pos_y + 1, 'H')):
                 print pos_x, pos_y + 1, 'H'
+                lockdown_h_walls.append({"wallX": pos_x, "wallY": pos_y + 1})
             else:
                 print >> sys.stderr, "Err: invalid wall -- aka ohhhh shitttt, we got some casses to add in build horizontal wall"
     elif (endzone == "RIGHT"):
         if (wall_dir == "UP"):
             if (is_valid_wall(players, player_id, walls, pos_x - 1, pos_y, 'H')):
-                print
+                print pos_x - 1, pos_y, 'H'
+                lockdown_h_walls.append({"wallX": pos_x - 1, "wallY": pos_y})
             else:
                 print >> sys.stderr, "Err: invalid wall -- aka ohhhh shitttt, we got some casses to add in build horizontal wall"
         elif (wall_dir == "DOWN"):
             if (is_valid_wall(players, player_id, walls, pos_x - 1, pos_y + 1, 'H')):
-                print
+                print pos_x - 1, pos_y + 1, 'H'
+                lockdown_h_walls.append({"wallX": pos_x - 1, "wallY": pos_y + 1})
             else:
                 print >> sys.stderr, "Err: invalid wall -- aka ohhhh shitttt, we got some casses to add in build horizontal wall"
     else:
@@ -475,6 +480,7 @@ def build_horizontal_wall(players, player_id, wall_dir, walls):
 # myId: id of my player (0 = 1st player, 1 = 2nd player, ...)
 w, h, playerCount, myId = [int(i) for i in raw_input().split()]
 locked, in_lockdown = False, False
+lockdown_h_walls = []
 
 # game loop
 while 1:
