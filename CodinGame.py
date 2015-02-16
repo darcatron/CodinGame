@@ -50,16 +50,19 @@ def lockdown(players, walls, myId):
     elif (moves_to_clear == 1):
         # TODO build vertical wall in front of oppo making gap in our direction
         # TODO force_direction = gap pos (UP or DOWN)
+        pass
     elif (moves_to_clear == 2):
         if (force_direction == "UP" and players[his_id]["y"] >= players[myId]["y"]): # oppo is equal or above us
             # TODO build horizontal above him
+            pass
         elif (force_direction == "DOWN" and players[his_id]["y"] <= players[myId]["y"]): # oppo is equal or below us
             # TODO build H wall below him
+            pass
     elif (next_wall_can_lock()): # we must be in the cage with him
         # close his exit
         locked = True
 
-   print best_path()
+    print best_path()
 
 
 ########################################################
@@ -258,15 +261,10 @@ def moves_to_clear_wall(walls, position, heading):
 
 # Wrapper for recursive function win_path_exists
 # Determines endzone based on playerId and sets order based on endzone to maximize efficiency based off Sean's guesses
-# TODO add param to this func that lets user restrict the positions checked. 
-#      Depending on the direction of intended travel, mark the column in the opposite direction as visited 
-#      e.g. if in 3,4 and we intend to go UP then we mark 3,5 & 3,6 & 3,7 & 3,8 as visited
-# UNTESTED - restricted version
-def is_possible_to_win(position, playerId, putX, putY, wallO, walls):
-    new_walls = list(walls)
-    new_walls.append({"wallX": putX, "wallY": putY, "wallO": wallO})
-
-    # TODO can use helper func if u want
+# gap_direction is None for standard call of this function, and is either "UP" or "DOWN" for restricted case
+def is_possible_to_win(position, playerId, walls, gap_direction=None):
+    global w, h
+    # TODO? can use helper func to select endzone
     if playerId == 0:
         endzone = "RIGHT"
         order = ["RIGHT", "UP", "DOWN", "LEFT"]
@@ -277,9 +275,27 @@ def is_possible_to_win(position, playerId, putX, putY, wallO, walls):
         endzone = "DOWN"
         order = ["DOWN", "RIGHT", "LEFT", "UP"]
 
+    # Default for regular case
     visited = [[0 for x in range(9)] for y in range(9)]
+    
 
-    return win_path_exists(new_walls, position, endzone, order, visited)
+    # check for restricted case
+    if gap_direction != None:
+        # Depending on the direction of intended travel, mark the column in the opposite direction as visited
+        # e.g. if in 3,4 and we intend to go UP then we mark 3,5 & 3,6 & 3,7 & 3,8 as visited
+        if gap_direction == "UP" and position["y"] != h - 1:
+            # Make all cells below position visited so we don't try for bottom end
+            for i in range(position["y"] + 1, h - 1):
+                visited[position["x"]][i] = True
+
+        elif gap_direction == "DOWN" and position["y"] != 0:
+            # Make all cells above position visited so we don't try for upper end
+            for i in range(position["y"] - 1, 0):
+                visited[position["x"]][i] = True
+
+        else:
+            print >> sys.stderr, "gap_direction is weird in is_possible_to_win restricted case!"
+    return win_path_exists(walls, position, endzone, order, visited)
 
 
 # Recursively finds if a path to the endzone exists
