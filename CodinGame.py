@@ -123,6 +123,26 @@ def is_in_bounds(position):
     if (position["x"] >= w or position["x"] < 0 or position["y"] >= h or position["y"] < 0):
         return False
     return True
+
+
+# Returns UP if player_to_be_moved needs to go UP to reach destination_player's row, and
+# returns DOWN is player_to_be_moved needs to go DOWN to reach destination_player's row
+# If the two players are on the same row, it returns the direction towards the middle of the board
+# First arg is generally going to be our position, second his position
+def direction_towards_player(destination_player, player_to_be_moved):
+    global h
+
+    if destination_player["y"] < player_to_be_moved["y"]:
+        return "UP"
+    elif destination_player["y"] > player_to_be_moved["y"]:
+        return "DOWN"
+    else:
+        # On same row, so push player_to_be_moved towards middle
+        if player_to_be_moved["y"] < (h / 2):
+            return "DOWN"
+        else:
+            return "UP"
+
     
 # Checks if a wall is valid by seeing if another wall is already there or if it goes out of bounds    
 def is_valid_wall(players, playerId, walls, putX, putY, wallO):
@@ -359,7 +379,7 @@ def gap_strategy(players, playerId, walls):
 
     if wall_in_front(walls, players[playerId], endzone):
         dir_to_move = direction_to_gap(walls, players[playerId], endzone)
-        
+
         if (is_possible_to_win(players[playerId], playerId, walls, dir_to_move): 
             # moving towards gap is a good idea (aka is not a dead end) using restricted is_possible_to_win
             if wall_in_front(walls, players[playerId], dir_to_move):

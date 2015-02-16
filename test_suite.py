@@ -430,3 +430,27 @@ players = [{}, {}, {"x": 3, "y": 2, "wallsLeft": 10}]
 print is_one_move_from_win(players, me, walls)
 print "^should be False^ for one move to win endzone: DOWN"
 
+
+#######################################
+# Tests for direction_towards_player  #
+#######################################
+
+# player is above destination player
+print direction_towards_player({"x": 4, "y": 4}, {"x": 4, "y": 3})
+print "^ Should be DOWN ^"
+
+# player is below destination player
+print direction_towards_player({"x": 4, "y": 4}, {"x": 4, "y": 5})
+print "^ Should be UP ^"
+
+# player is on same level as destination player but on lower half of board
+print direction_towards_player({"x": 4, "y": 7}, {"x": 5, "y": 7})
+print "^ Should be UP ^"
+
+# player is on same level as destination player but on upper half of board
+print direction_towards_player({"x": 4, "y": 2}, {"x": 5, "y": 2})
+print "^ Should be DOWN ^"
+
+# player is on same level as destination player but in middle of board
+print direction_towards_player({"x": 4, "y": 4}, {"x": 5, "y": 4})
+print "^ Should be UP ^"
