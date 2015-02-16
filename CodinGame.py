@@ -476,11 +476,14 @@ def build_horizontal_wall_lockdown(players, receiver_id, wall_pos, walls):
 # TODO UNTESTED
 def build_vertical_wall_lockdown(players, receiver_id, wall_pos, walls):
     # build vertical wall in front of oppo making gap in our direction
+    global oppo_gap 
     creator_id = 0 if receiver_id == 1 else 1
-    gap = direction_towards_player(players[creator_id], players[receiver_id])
     endzone = find_endzone(receiver_id)
 
-    if (gap == "DOWN"):
+    if (not oppo_gap): # determining where gap is for the first and only time
+        oppo_gap = direction_towards_player(players[creator_id], players[receiver_id])
+
+    if (oppo_gap == "DOWN"):
         # gap bottom -> build greatest even that is less than or equal to receiver
         check = is_even
     elif (gap == "UP"):
@@ -515,6 +518,7 @@ def build_vertical_wall_lockdown(players, receiver_id, wall_pos, walls):
 w, h, playerCount, myId = [int(i) for i in raw_input().split()]
 locked, in_lockdown = False, False
 lockdown_h_walls = []
+oppo_gap = None
 
 # game loop
 while 1:
