@@ -10,37 +10,38 @@
 # For lockdown -- Worst Case Scenario: They lock out our exit before we completely lock theirs
 # Know when opponent runs out of walls, if they do and we have the shortest path, then we win and there is no need to block with walls
 # Oppo starts walling from the start and we can't do lockdown
-# build_horizontal_wall doesnt work for 3 players
+# build_horizontal_wall_lockdown doesnt work for 3 players
+# build_vertical_wall does not take into account if the oppo does not move toward the gap, in the case the oppo moves away from the gap, keep walling oppo
 
 import sys, math, random
 
 ########################################################
 ################ 2 PLAYER STRATEGY #####################
 ########################################################
-def two_players(players, walls, myId):
+def two_players(players, walls, my_id):
     global locked, in_lockdown
-    his_id = 1 if myId == 0 else 0
+    his_id = 1 if my_id == 0 else 0
 
     if in_lockdown:
-        lockdown(players, walls, myId)
+        lockdown(players, walls, my_id)
     elif (is_one_move_from_win(players, his_id, walls)): 
         # oppo is about to win!
-        # TODO vertical wall them, forcing them towards us, using gap strategy, and blocking their exit
-        pass
+        # vertical wall them, forcing them towards us, using gap strategy, and blocking their exit
+        build_vertical_wall_lockdown(players, his_id, wall_pos, walls)
     else:
         move = best_path()
 
-        if (move == find_opposite_endzone(myId)): 
+        if (move == find_opposite_endzone(my_id)): 
             # move makes us go "backwards" 
             in_lockdown = True # make sure it is not a corner case, literally -- whatever that means
-            lockdown(players, walls, myId)
+            lockdown(players, walls, my_id)
         else:
             print move
 
 
-def lockdown(players, walls, myId):
+def lockdown(players, walls, my_id):
     global locked
-    his_id = 1 if myId == 0 else 0
+    his_id = 1 if my_id == 0 else 0
     force_direction = None
     moves_to_clear = moves_to_clear_wall(walls, players[his_id], "RIGHT" if his_id == 0 else "LEFT")
 
@@ -51,17 +52,15 @@ def lockdown(players, walls, myId):
         locked = True
         return
     elif (moves_to_clear == 1):
-        # TODO build vertical wall in front of oppo making gap in our direction
-        # TODO force_direction = gap pos (UP or DOWN)
-        pass
+         build_vertical_wall_lockdown(players, his_id, wall_pos, walls)
     elif (moves_to_clear == 2):
-        if (force_direction == "UP" and players[his_id]["y"] >= players[myId]["y"]): # oppo is equal or above us
+        if (force_direction == "UP" and players[his_id]["y"] >= players[my_id]["y"]): # oppo is equal or above us
             # build H wall above him
-            build_horizontal_wall(players, his_id, force_direction, walls)
+            build_horizontal_wall_lockdown(players, his_id, force_direction, walls)
             return
-        elif (force_direction == "DOWN" and players[his_id]["y"] <= players[myId]["y"]): # oppo is equal or below us
+        elif (force_direction == "DOWN" and players[his_id]["y"] <= players[my_id]["y"]): # oppo is equal or below us
             # build H wall below him
-            build_horizontal_wall(players, his_id, force_direction, walls)
+            build_horizontal_wall_lockdown(players, his_id, force_direction, walls)
             return
 
     print best_path()
@@ -70,10 +69,10 @@ def lockdown(players, walls, myId):
 ########################################################
 ################ 3 PLAYER STRATEGY #####################
 ########################################################
-def three_players(players, walls, myId):
-    if myId == 0:
+def three_players(players, walls, my_id):
+    if my_id == 0:
         first_player_of_three(players, walls)
-    elif myId == 1:
+    elif my_id == 1:
         second_player_of_three(players, walls)
     else:
         third_player_of_three(players, walls)
@@ -145,14 +144,16 @@ def direction_towards_player(destination_player, player_to_be_moved):
 
     
 # Checks if a wall is valid by seeing if another wall is already there or if it goes out of bounds    
-def is_valid_wall(players, playerId, walls, putX, putY, wallO):
+def is_valid_wall(players, creator_id, walls, putX, putY, wallO):
     global w, h
+    receiver_id = 0 if creator_id == 1 else 1
 
-    if no_walls_left(players[playerId]) \
+    if no_walls_left(players[creator_id]) \
         or wall_exists(putX, putY, wallO, walls) \
         or wall_out_of_bounds(putX, putY, wallO, walls) \
         or wall_crosses_or_overlays(putX, putY, wallO, walls) \
-        or not is_possible_to_win(players[playerId], playerId, walls + [{"wallX": putX, "wallY": putY, "wallO": wallO}]):
+        or not is_possible_to_win(players[creator_id], creator_id, walls + [{"wallX": putX, "wallY": putY, "wallO": wallO}])\
+        or not is_possible_to_win(players[receiver_id], receiver_id, walls + [{"wallX": putX, "wallY": putY, "wallO": wallO}]):
         return False
     
     # wall is good with the world
@@ -435,42 +436,75 @@ def direction_to_gap(walls, position, endzone):
     else:
         print >> sys.stderr, "Err: Invalid endzone given to direction_to_gap"
 
-def build_horizontal_wall(players, player_id, wall_dir, walls):
+def build_horizontal_wall_lockdown(players, receiver_id, wall_pos, walls):
     global lockdown_h_walls
 
-    endzone = find_endzone(player_id)
-    pos_x = players[player_id]['x']
-    pos_y = players[player_id]['y']
+    creator_id = 0 if receiver_id == 1 else 1
+    endzone = find_endzone(receiver_id)
+    pos_x = players[receiver_id]['x']
+    pos_y = players[receiver_id]['y']
 
     if (endzone == "LEFT"):
-        if (wall_dir == "UP"):
-            if (is_valid_wall(players, player_id, walls, pos_x, pos_y, 'H')):
+        if (wall_pos == "UP"):
+            if (is_valid_wall(players, creator_id, walls, pos_x, pos_y, 'H')):
                 print pos_x, pos_y, 'H'
                 lockdown_h_walls.append({"wallX": pos_x, "wallY": pos_y}) 
             else:
                 print >> sys.stderr, "Err: invalid wall -- aka ohhhh shitttt, we got some casses to add in build horizontal wall"
-        elif (wall_dir == "DOWN"):
-            if (is_valid_wall(players, player_id, walls, pos_x, pos_y + 1, 'H')):
+        elif (wall_pos == "DOWN"):
+            if (is_valid_wall(players, creator_id, walls, pos_x, pos_y + 1, 'H')):
                 print pos_x, pos_y + 1, 'H'
                 lockdown_h_walls.append({"wallX": pos_x, "wallY": pos_y + 1})
             else:
                 print >> sys.stderr, "Err: invalid wall -- aka ohhhh shitttt, we got some casses to add in build horizontal wall"
     elif (endzone == "RIGHT"):
-        if (wall_dir == "UP"):
-            if (is_valid_wall(players, player_id, walls, pos_x - 1, pos_y, 'H')):
+        if (wall_pos == "UP"):
+            if (is_valid_wall(players, creator_id, walls, pos_x - 1, pos_y, 'H')):
                 print pos_x - 1, pos_y, 'H'
                 lockdown_h_walls.append({"wallX": pos_x - 1, "wallY": pos_y})
             else:
                 print >> sys.stderr, "Err: invalid wall -- aka ohhhh shitttt, we got some casses to add in build horizontal wall"
-        elif (wall_dir == "DOWN"):
-            if (is_valid_wall(players, player_id, walls, pos_x - 1, pos_y + 1, 'H')):
+        elif (wall_pos == "DOWN"):
+            if (is_valid_wall(players, creator_id, walls, pos_x - 1, pos_y + 1, 'H')):
                 print pos_x - 1, pos_y + 1, 'H'
                 lockdown_h_walls.append({"wallX": pos_x - 1, "wallY": pos_y + 1})
             else:
                 print >> sys.stderr, "Err: invalid wall -- aka ohhhh shitttt, we got some casses to add in build horizontal wall"
     else:
-        print >> sys.stderr, "Err: build_horizontal_wall was given nonexistant endzone"
+        print >> sys.stderr, "Err: build_horizontal_wall_lockdown was given nonexistant endzone"
 
+# TODO UNTESTED
+def build_vertical_wall_lockdown(players, receiver_id, wall_pos, walls):
+    # build vertical wall in front of oppo making gap in our direction
+    creator_id = 0 if receiver_id == 1 else 1
+    gap = direction_towards_player(players[creator_id], players[receiver_id])
+    endzone = find_endzone(receiver_id)
+
+    if (gap == "DOWN"):
+        # gap bottom -> build greatest even that is less than or equal to receiver
+        check = is_even
+    elif (gap == "UP"):
+        # gap top -> build greatest odd that is less than or equal to receiver 
+        check = is_odd
+    else:
+        print sys.stderr, "build_vertical_wall_lockdown got a gap that has not yet been implemented"
+
+    if (endzone == "LEFT"):
+        if (check(players[receiver_id]['y'])):
+            if (is_valid_wall(players, creator_id, walls, players[receiver_id]['x'], players[receiver_id]['y'], 'V')):
+                print players[receiver_id]['x'], players[receiver_id]['y'], 'V'
+        else: # odd y pos
+            if (is_valid_wall(players, creator_id, walls, players[receiver_id]['x'], players[receiver_id]['y'] - 1, 'V')):
+                print players[receiver_id]['x'], players[receiver_id]['y'] - 1, 'V'
+    elif (endzone == "RIGHT"):
+        if (check(players[receiver_id]['y'])):
+            if (is_valid_wall(players, creator_id, walls, players[receiver_id]['x'] + 1, players[receiver_id]['y'], 'V')):
+                print players[receiver_id]['x'] + 1, players[receiver_id]['y'], 'V'
+        else: # odd y pos
+            if (is_valid_wall(players, creator_id, walls, players[receiver_id]['x'] + 1, players[receiver_id]['y'] - 1, 'V')):
+                print players[receiver_id]['x'] + 1, players[receiver_id]['y'] - 1, 'V'
+    else:  
+        print sys.stderr, "build_vertical_wall_lockdown got an endzone that has not yet been implemented"
 
 
 
