@@ -11,7 +11,6 @@
 # Know when opponent runs out of walls, if they do and we have the shortest path, then we win and there is no need to block with walls
 # Oppo starts walling from the start and we can't do lockdown
 
-
 import sys, math, random
 
 ########################################################
@@ -40,10 +39,9 @@ def two_players(players, walls, myId):
 
 def lockdown(players, walls, myId):
     global locked
-
-    force_direction = None
-    moves_to_clear = moves_to_clear_wall(walls, players[myId], "RIGHT" if myId == 0 else "LEFT")
     his_id = 1 if myId == 0 else 0
+    force_direction = None
+    moves_to_clear = moves_to_clear_wall(walls, players[his_id], "RIGHT" if his_id == 0 else "LEFT")
 
     if locked:
         pass
@@ -121,6 +119,26 @@ def is_in_bounds(position):
     if (position["x"] >= w or position["x"] < 0 or position["y"] >= h or position["y"] < 0):
         return False
     return True
+
+
+# Returns UP if player_to_be_moved needs to go UP to reach destination_player's row, and
+# returns DOWN is player_to_be_moved needs to go DOWN to reach destination_player's row
+# If the two players are on the same row, it returns the direction towards the middle of the board
+# First arg is generally going to be our position, second his position
+def direction_towards_player(destination_player, player_to_be_moved):
+    global h
+
+    if destination_player["y"] < player_to_be_moved["y"]:
+        return "UP"
+    elif destination_player["y"] > player_to_be_moved["y"]:
+        return "DOWN"
+    else:
+        # On same row, so push player_to_be_moved towards middle
+        if player_to_be_moved["y"] < (h / 2):
+            return "DOWN"
+        else:
+            return "UP"
+
     
 # Checks if a wall is valid by seeing if another wall is already there or if it goes out of bounds    
 def is_valid_wall(players, playerId, walls, putX, putY, wallO):
@@ -345,9 +363,10 @@ def win_path_exists(walls, position, endzone, order, visited):
 def best_path(players, playerId, walls):
     if (in_lockdown): # TODO check if fails many times
         # TODO go towards "our" exit, this might be the same as the gap_strategy(). Check it when gap is written
-        pass
+        gap_strategy(players, playerId, walls) # change if this does not work well
     else:
         return gap_strategy(players, playerId, walls)
+
 # TODO UNTESTED
 # Sean thinks it is possible that we might have to add is_possible_to_win before every return that hasn't been
 # checked yet (or at least most of them)

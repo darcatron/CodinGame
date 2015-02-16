@@ -430,3 +430,8 @@ players = [{}, {}, {"x": 3, "y": 2, "wallsLeft": 10}]
 print is_one_move_from_win(players, me, walls)
 print "^should be False^ for one move to win endzone: DOWN"
 
+
+#######################################
+# Tests for direction_towards_player  #
+#######################################
+
