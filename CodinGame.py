@@ -19,7 +19,7 @@ import sys, math, random
 ################ 2 PLAYER STRATEGY #####################
 ########################################################
 def two_players(players, walls, my_id):
-    global locked, in_lockdown
+    global in_lockdown
     his_id = 1 if my_id == 0 else 0
 
     if in_lockdown:
@@ -40,7 +40,6 @@ def two_players(players, walls, my_id):
 
 
 def lockdown(players, walls, my_id):
-    global locked
     his_id = 1 if my_id == 0 else 0
     force_direction = None
     moves_to_clear = moves_to_clear_wall(walls, players[his_id], "RIGHT" if his_id == 0 else "LEFT")
@@ -107,9 +106,7 @@ def is_odd(numb):
     return (numb % 2)
 
 # Checks to see if given position is a corner, returns bool
-def is_corner(position):
-    global w, h
-    
+def is_corner(position):    
     if (position["x"] == 0 or position["x"] == (w - 1)):
         if position["y"] == 0 :
             return True
@@ -119,9 +116,7 @@ def is_corner(position):
     return False
     
 
-def is_in_bounds(position):
-    global w, h
-    
+def is_in_bounds(position):    
     if (position["x"] >= w or position["x"] < 0 or position["y"] >= h or position["y"] < 0):
         return False
     return True
@@ -132,8 +127,6 @@ def is_in_bounds(position):
 # If the two players are on the same row, it returns the direction towards the middle of the board
 # First arg is generally going to be our position, second his position
 def direction_towards_player(destination_player, player_to_be_moved):
-    global h
-
     if destination_player["y"] < player_to_be_moved["y"]:
         return "UP"
     elif destination_player["y"] > player_to_be_moved["y"]:
@@ -148,7 +141,6 @@ def direction_towards_player(destination_player, player_to_be_moved):
     
 # Checks if a wall is valid by seeing if another wall is already there or if it goes out of bounds    
 def is_valid_wall(players, creator_id, walls, putX, putY, wallO):
-    global w, h
     receiver_id = 0 if creator_id == 1 else 1
 
     if no_walls_left(players[creator_id]) \
@@ -189,7 +181,6 @@ def opposite_direction(direction):
         return "UP" 
 
 def is_one_move_from_win(players, playerId, walls):
-    global w, h
     endzone = find_endzone(playerId)
 
     if (endzone == "RIGHT"):
@@ -211,8 +202,6 @@ def wall_exists(putX, putY, wallO, walls):
     return {"wallX": putX, "wallY": putY, "wallO": wallO} in walls
 
 def wall_out_of_bounds(putX, putY, wallO, walls):
-    global w, h # grid width and height
-
     if wallO == "V":
         return (putX >= w) or (putY >= h - 1) or (putX == 0)
     elif wallO == "H":
@@ -288,7 +277,6 @@ def moves_to_clear_wall(walls, position, heading):
 # Determines endzone based on playerId and sets order based on endzone to maximize efficiency based off Sean's guesses
 # gap_direction is None for standard call of this function, and is either "UP" or "DOWN" for restricted case
 def is_possible_to_win(position, playerId, walls, gap_direction=None):
-    global w, h
     # TODO? can use helper func to select endzone
     if playerId == 0:
         endzone = "RIGHT"
@@ -325,8 +313,6 @@ def is_possible_to_win(position, playerId, walls, gap_direction=None):
 
 # Recursively finds if a path to the endzone exists
 def win_path_exists(walls, position, endzone, order, visited):
-    global w, h
-
     # base case
     if endzone == "RIGHT" and position["x"] == w - 1:
         # in endzone, path exists
@@ -543,8 +529,6 @@ def should_h_wall_lock(player, h_wall, walls, wall_offset):
 # will require 2 or 3 walls to lock
 # Returns False (0) if otherwise
 def should_lock(players, his_id, walls, my_id):
-    global lockdown_h_walls
-
     endzone = find_endzone(my_id)
 
     # Offsets change from positive to negative depending on what direction we are locking in, which
@@ -569,8 +553,6 @@ def should_lock(players, his_id, walls, my_id):
 # TODO if the oppo is near the top or bottom edge, building a wall may close off both paths. We will need to account for
 #  this once we test and see how often it happens
 def lock(players, walls, my_id):
-    global lockdown_h_walls, locked
-
     num_away = should_lock(players, his_id, walls, my_id)
     last_h_wall = lockdown_h_walls[-1]
     his_id = 1 if my_id == 0 else 0
@@ -597,9 +579,10 @@ def lock(players, walls, my_id):
             print >> sys.stderr, "bad endzone for lock function"
 
         if (wall_exists(pos_x, pos_y, 'V', walls)):
-            lock_2_3(pos_x, pos_y, walls, my_id)
+            lock_2_3(pos_x, pos_y, walls, players, my_id)
         else:
-            lock_1_4()
+            # TODO
+            lock_1_4(players, walls, my_id)
 
     else:
         print >> sys.stderr, "Bad num_away in lock function"
@@ -612,9 +595,12 @@ def lock(players, walls, my_id):
 # See diagram for meaning of 2_3
 # Existing wall coordinates are for the vertical wall 
 #  necessary to get into lock method 2,3
-def lock_2_3(existing_wall_x, existing_wall_y, walls, my_id):
+def lock_2_3(existing_wall_x, existing_wall_y, walls, players, my_id):
+    global locked
+
     his_id = 1 if my_id == 0 else 0
     his_endzone = find_endzone(his_id) 
+    last_h_wall = lockdown_h_walls[-1]
     his_pos = "DOWN" if players[his_id]['y'] >= last_h_wall['wallY'] else "UP"
     pos_x_3, pos_y_3, pos_x_2, pos_y_2 = None, None, None, None
 
@@ -632,9 +618,9 @@ def lock_2_3(existing_wall_x, existing_wall_y, walls, my_id):
 
     # set wall 3 (y)
     if (his_pos == "UP"):
-        pos_y_3 = existing_wall_y
-    elif (his_pos == "DOWN"):
         pos_y_3 = existing_wall_y + 2
+    elif (his_pos == "DOWN"):
+        pos_y_3 = existing_wall_y
     else:
         print >> sys.stderr, "Err: Invalid his_pos in lock_2_3" 
 
@@ -655,20 +641,61 @@ def lock_2_3(existing_wall_x, existing_wall_y, walls, my_id):
             print >> sys.stderr, "Err: Invalid wall 2 in lock_2_3" 
 
 
+# TODO UNTESTED
+def lock_1_4(players, walls, my_id):
+    global locked
 
-    # global lockdown_h_walls
+    his_id = 1 if my_id == 0 else 0
+    his_endzone = find_endzone(his_id)
+    last_h_wall = lockdown_h_walls[-1]
+    his_pos = "DOWN" if players[his_id]['y'] >= last_h_wall['wallY'] else "UP"
+    pos_x_1, pos_y_1, pos_x_4, pos_y_4, pos_x_6, pos_y_6 = None, None, None, None
 
-    # last_h_wall = lockdown_h_walls[-1]
+    if (his_endzone == "LEFT"):
+        pos_x_1 = last_h_wall["wallX"]
+        pos_x_4 = last_h_wall["wallX"] - 1
+        pos_x_6 = last_h_wall["wallX"] - 1
+    elif (his_endzone == "RIGHT"):
+        pos_x_1 = last_h_wall["wallX"] + 2
+        pos_x_4 = last_h_wall["wallX"] + 1
+        pos_x_6 = last_h_wall["wallX"] + 3
+    else:
+        print >> sys.stderr, "Err: Invalid his_endzone in lock_1_4"     
 
-    # if wall_exists(last_h_wall["wallX"] + 2, last_h_wall["wallY"] - 1, 'V', walls):
-    #     if is_valid_wall(players, my_id, walls, last_h_wall["wallX"] + 1, last_h_wall["wallY"] - 1, 'H'):
-    #         print last_h_wall["wallX"] + 1, last_h_wall["wallY"] - 1, 'H'
-    #     else:
-    #         print >> sys.stderr, "Invalid wall 3 for right endzone"
-    # elif is_valid_wall(players, my_id, walls, last_h_wall["wallX"] + 2, last_h_wall["wallY"] - 1, 'V'):
-    #     print last_h_wall["wallX"] + 2, last_h_wall["wallY"] - 1, 'V'
-    # else:
-    #     print >> sys.stderr, "Invalid wall 2 for right endzone"
+    if (his_pos == "UP"):
+        pos_y_1 = pos_y_6 = last_h_wall["wallY"]
+        pos_y_4 = last_h_wall["wallY"] + 2 
+    elif (his_pos == "DOWN"):
+        pos_y_1 = pos_y_4 = pos_y_6 = last_h_wall["wallY"] - 2
+    else:
+         print >> sys.stderr, "Err: Invalid his_pos in lock_1_4"
+
+    # if 1 exists
+    if (wall_exists(pos_x_1, pos_y_1, 'V', walls)):
+        # if 4 exists 
+        if (wall_exists(pos_x_4, pos_y_4, 'H', walls)):
+            # if this is reached, we are guaranted 6 is not build since build 4 checks for 6
+            if (is_valid_wall(players, my_id, walls, pos_x_6, pos_y_6, 'V')):
+                # build 6
+                print pos_x_6, pos_y_6, 'V'
+                locked = True
+            else:
+                print >> sys.stderr, "Err: Invalid wall 6 in lock_1_4"
+        else:
+            # else build 4
+            if (is_valid_wall(players, my_id, walls, pos_x_4, pos_y_4, 'H')):
+                print pos_x_4, pos_y_4, 'H'
+                # check if 6 already exists
+                if (wall_exists(pos_x_6, pos_y_6, 'V', walls)):
+                    locked = True
+            else:
+                print >> sys.stderr, "Err: Invalid wall 4 in lock_1_4"
+    else:
+        # else build 1
+        if (is_valid_wall(players, my_id, walls, pos_x_1, pos_y_1, 'V'):
+            print pos_x_1, pos_y_1, 'V'
+        else:
+             print >> sys.stderr, "Err: Invalid wall 1 in lock_1_4"
 
 
 # w: width of the board
