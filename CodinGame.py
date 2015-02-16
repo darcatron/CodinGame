@@ -12,6 +12,8 @@
 # Oppo starts walling from the start and we can't do lockdown
 # build_horizontal_wall_lockdown doesnt work for 3 players
 # build_vertical_wall does not take into account if the oppo does not move toward the gap, in the case the oppo moves away from the gap, keep walling oppo
+# TODO maybe. if he goes shortest path instead of gap strategy. Might get through our lockdown through non-gap (I don't think so but you never know)
+
 
 import sys, math, random
 
@@ -39,31 +41,37 @@ def two_players(players, walls, my_id):
             print move
 
 
+
 def lockdown(players, walls, my_id):
     global locked
+
     his_id = 1 if my_id == 0 else 0
-    force_direction = None
+    # force_direction = None  # Sean removed this in favor of using global oppo_gap... objections?
     moves_to_clear = moves_to_clear_wall(walls, players[his_id], "RIGHT" if his_id == 0 else "LEFT")
 
     if locked:
         pass # best_path()
     elif (should_lock(players, his_id, walls, myId)): # TODO we must be in the cage with him
-        # TODO close his exit
-        # TODO this locked = True happens in lock_2_3 or lock_1_4 
-        # locked = True
+        # call lock
         return
+    elif horizontal_phase:
+        # check to see he is going to clear horiz wall with upgraded moves_to_clear
+        if moves_to_clear_wall(walls, players[his_id], oppo_gap) == 1:
+            build_horizontal_wall_lockdown(players, his_id, oppo_gap, walls) # Sean called Matush's functon here, not sure if we built it
+                                                                           # it for this case... scary
+        else:
+            pass # best path()
     elif (moves_to_clear == 1):
          build_vertical_wall_lockdown(players, his_id, wall_pos, walls)
     elif (moves_to_clear == 2):
-        # TODO This will only trigger for the first horizontal wall, we need something to keep placing h_walls until should_lock is true
-        # TODO need to assign force_direction
-        if (force_direction == "UP" and players[his_id]["y"] >= players[myId]["y"]): # oppo is equal or above us
+        horizontal_phase = True # activate horizontal phase
+        if (oppo_gap == "UP" and players[his_id]["y"] >= players[myId]["y"]): # oppo is equal or above us
             # build H wall above him
-            build_horizontal_wall_lockdown(players, his_id, force_direction, walls)
+            build_horizontal_wall_lockdown(players, his_id, oppo_gap, walls)
             return
-        elif (force_direction == "DOWN" and players[his_id]["y"] <= players[my_id]["y"]): # oppo is equal or below us
+        elif (oppo_gap == "DOWN" and players[his_id]["y"] <= players[my_id]["y"]): # oppo is equal or below us
             # build H wall below him
-            build_horizontal_wall_lockdown(players, his_id, force_direction, walls)
+            build_horizontal_wall_lockdown(players, his_id, oppo_gap, walls)
             return
 
     print best_path()
@@ -254,21 +262,28 @@ def wall_in_front(walls, position, heading):
 
     return False
 
-
+#####TODO 8
+#### TODO check for later maybe, doesn't take into account other walls in the players
+  ## path when trying to circumvent wall_in_front
 def moves_to_clear_wall(walls, position, heading):
     originalPos = dict(position)
-    movesUp = 0
-    movesDown = 0
-    
-    #####TODO 8
-    
+
+    if heading == "LEFT" or heading == "RIGHT":
+        direction = "y"
+    elif heading == "UP" or heading == "DOWN"
+        direction = "x"
+    else:
+        print >> sys.stderr, "Bad heading for moves_to_clear_wall"
+
+    movesUpOrLeft = 0
+    movesDownOrRight = 0
     #check num moves to clear by moving up
     while wall_in_front(walls, originalPos, heading):
         originalPos["y"] -= 1
         if not is_in_bounds(originalPos):
-            movesUp = "inf"
+            movesUpOrLeft = "inf"
             break
-        movesUp += 1
+        movesUpOrLeft += 1
     
     originalPos = dict(position)
     
@@ -276,12 +291,10 @@ def moves_to_clear_wall(walls, position, heading):
     while wall_in_front(walls, originalPos, heading):
         originalPos["y"] += 1
         if not is_in_bounds(originalPos):
-            return [movesUp, "UP"]
-        movesDown += 1
-    if (min(movesUp, movesDown) == movesDown):
-        return [movesDown, "DOWN"]
-    else:
-        return [movesUp, "UP"]
+            return movesDownOrRight
+        movesDownOrRight += 1
+
+    return min(movesUpOrLeft, movesDownOrRight)
 
 
 # Wrapper for recursive function win_path_exists
@@ -614,7 +627,7 @@ def lock(players, walls, my_id):
 #  necessary to get into lock method 2,3
 def lock_2_3(existing_wall_x, existing_wall_y, walls, my_id):
     his_id = 1 if my_id == 0 else 0
-    his_endzone = find_endzone(his_id) 
+    his_endzone = find_endzone(his_id)
     his_pos = "DOWN" if players[his_id]['y'] >= last_h_wall['wallY'] else "UP"
     pos_x_3, pos_y_3, pos_x_2, pos_y_2 = None, None, None, None
 
@@ -679,6 +692,7 @@ w, h, playerCount, myId = [int(i) for i in raw_input().split()]
 locked, in_lockdown = False, False
 lockdown_h_walls = []
 oppo_gap = None
+horizontal_phase = False
 
 # game loop
 while 1:
