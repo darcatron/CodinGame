@@ -11,7 +11,6 @@
 # Know when opponent runs out of walls, if they do and we have the shortest path, then we win and there is no need to block with walls
 # Oppo starts walling from the start and we can't do lockdown
 
-
 import sys, math, random
 
 ########################################################
@@ -40,10 +39,9 @@ def two_players(players, walls, myId):
 
 def lockdown(players, walls, myId):
     global locked
-
-    force_direction = None
-    moves_to_clear = moves_to_clear_wall(walls, players[myId], "RIGHT" if myId == 0 else "LEFT")
     his_id = 1 if myId == 0 else 0
+    force_direction = None
+    moves_to_clear = moves_to_clear_wall(walls, players[his_id], "RIGHT" if his_id == 0 else "LEFT")
 
     if locked:
         pass
@@ -345,25 +343,19 @@ def win_path_exists(walls, position, endzone, order, visited):
 def best_path(players, playerId, walls):
     if (in_lockdown): # TODO check if fails many times
         # TODO go towards "our" exit, this might be the same as the gap_strategy(). Check it when gap is written
-        pass
+        gap_strategy(players, playerId, walls) # change if this does not work well
     else:
         return gap_strategy(players, playerId, walls)
+
 # TODO UNTESTED
 # Sean thinks it is possible that we might have to add is_possible_to_win before every return that hasn't been
 # checked yet (or at least most of them)
 def gap_strategy(players, playerId, walls):
-    # TODO check to make sure there is a path to the gap that goes thru the gap and not just around the endzone to reach the gap
-        # goal: from where we are, we want to move one column forward.
-        #       use a function to check if a path exists from a position on that column to our position
-        #       E.g. we are at 3,4 and there is a wall in front, we want to get to a pos in col 4
-        #           we run path_exists((4,8), 3,4), if true, it's not blocked, if false gap is on other side
-        #       Using restricted is_possible_to_win
     endzone = find_endzone(playerId)
 
     if wall_in_front(walls, players[playerId], endzone):
         dir_to_move = direction_to_gap(walls, players[playerId], endzone)
         
-        # TODO 
         if (is_possible_to_win(players[playerId], playerId, walls, dir_to_move): 
             # moving towards gap is a good idea (aka is not a dead end) using restricted is_possible_to_win
             if wall_in_front(walls, players[playerId], dir_to_move):
