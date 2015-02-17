@@ -26,10 +26,14 @@ def two_players(players, walls, my_id):
 
     if in_lockdown:
         lockdown(players, walls, my_id)
+    # elif ():
+        # TODO if oppo is one away from his gap, then H wall him
+        # e.g. http://www.codingame.com/replay/33017521
+        # e.g http://www.codingame.com/replay/33020593
     elif (is_one_move_from_win(players, his_id, walls)): 
         # oppo is about to win!
         # vertical wall them, forcing them towards us, using gap strategy, and blocking their exit
-        build_vertical_wall_lockdown(players, his_id, wall_pos, walls)
+        build_vertical_wall_lockdown(players, his_id, walls)
     else:
         move = best_path(players, my_id, walls)
 
@@ -43,7 +47,7 @@ def two_players(players, walls, my_id):
 
 
 def lockdown(players, walls, my_id):
-    global locked
+    global locked, horizontal_phase
 
     his_id = 1 if my_id == 0 else 0
     # force_direction = None  # Sean removed this in favor of using global oppo_gap... objections?
@@ -51,8 +55,9 @@ def lockdown(players, walls, my_id):
 
     if locked:
         pass # best_path()
-    elif (should_lock(players, his_id, walls, myId)): # TODO we must be in the cage with him
+    elif (horizontal_phase and should_lock(players, his_id, walls, myId)): # TODO we must be in the cage with him
         # call lock
+        lock(players, walls, my_id)
         return
     elif horizontal_phase:
         # check to see he is going to clear horiz wall with upgraded moves_to_clear
@@ -62,7 +67,7 @@ def lockdown(players, walls, my_id):
         else:
             pass # best path()
     elif (moves_to_clear == 1):
-         build_vertical_wall_lockdown(players, his_id, wall_pos, walls)
+         build_vertical_wall_lockdown(players, his_id, walls)
     elif (moves_to_clear == 2):
         horizontal_phase = True # activate horizontal phase
         if (oppo_gap == "UP" and players[his_id]["y"] >= players[myId]["y"]): # oppo is equal or above us
@@ -367,10 +372,11 @@ def win_path_exists(walls, position, endzone, order, visited):
     return False
 
 # TODO UNTESTED
+# TODO fix http://www.codingame.com/replay/33033473
 def best_path(players, playerId, walls):
     if (in_lockdown): # TODO check if fails many times
         # TODO go towards "our" exit, this might be the same as the gap_strategy(). Check it when gap is written
-        gap_strategy(players, playerId, walls) # change if this does not work well
+        return gap_strategy(players, playerId, walls) # change if this does not work well
     else:
         return gap_strategy(players, playerId, walls)
 
@@ -476,7 +482,7 @@ def build_horizontal_wall_lockdown(players, receiver_id, wall_pos, walls):
         print >> sys.stderr, "Err: build_horizontal_wall_lockdown was given nonexistant endzone"
 
 # TODO UNTESTED
-def build_vertical_wall_lockdown(players, receiver_id, wall_pos, walls):
+def build_vertical_wall_lockdown(players, receiver_id, walls):
     # build vertical wall in front of oppo making gap in our direction
     global oppo_gap 
     creator_id = 0 if receiver_id == 1 else 1
@@ -488,28 +494,36 @@ def build_vertical_wall_lockdown(players, receiver_id, wall_pos, walls):
     if (oppo_gap == "DOWN"):
         # gap bottom -> build greatest even that is less than or equal to receiver
         check = is_even
-    elif (gap == "UP"):
+    elif (oppo_gap == "UP"):
         # gap top -> build greatest odd that is less than or equal to receiver 
         check = is_odd
     else:
-        print sys.stderr, "build_vertical_wall_lockdown got a gap that has not yet been implemented"
+        print >> sys.stderr, "build_vertical_wall_lockdown got a gap that has not yet been implemented"
 
     if (endzone == "LEFT"):
         if (check(players[receiver_id]['y'])):
             if (is_valid_wall(players, creator_id, walls, players[receiver_id]['x'], players[receiver_id]['y'], 'V')):
                 print players[receiver_id]['x'], players[receiver_id]['y'], 'V'
+            else:
+                print >> sys.stderr, "Err: not a valid V wall in build V wall lockdown endzone == LEFT and check == True"
         else: # odd y pos
             if (is_valid_wall(players, creator_id, walls, players[receiver_id]['x'], players[receiver_id]['y'] - 1, 'V')):
                 print players[receiver_id]['x'], players[receiver_id]['y'] - 1, 'V'
+            else:
+                print >> sys.stderr, "Err: not a valid V wall in build V wall lockdown endzone == LEFT and check == False"
     elif (endzone == "RIGHT"):
         if (check(players[receiver_id]['y'])):
             if (is_valid_wall(players, creator_id, walls, players[receiver_id]['x'] + 1, players[receiver_id]['y'], 'V')):
                 print players[receiver_id]['x'] + 1, players[receiver_id]['y'], 'V'
+            else:
+                print >> sys.stderr, "Err: not a valid V wall in build V wall lockdown endzone == RIGHT and check == True"
         else: # odd y pos
             if (is_valid_wall(players, creator_id, walls, players[receiver_id]['x'] + 1, players[receiver_id]['y'] - 1, 'V')):
                 print players[receiver_id]['x'] + 1, players[receiver_id]['y'] - 1, 'V'
+            else:
+                print >> sys.stderr, "Err: not a valid V wall in build V wall lockdown endzone == RIGHT and check == False"
     else:  
-        print sys.stderr, "build_vertical_wall_lockdown got an endzone that has not yet been implemented"
+        print >> sys.stderr, "build_vertical_wall_lockdown got an endzone that has not yet been implemented"
 
 
 # TODO Untested!
