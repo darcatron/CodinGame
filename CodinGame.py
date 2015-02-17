@@ -1,5 +1,8 @@
 # TODO 
 # 8 Does not take into account heading when counting the number of moves to clear a wall (right now only works for moving right and left)
+# TODO
+# http://www.codingame.com/replay/33034817
+
 
 # NOTES!
 # EVERYTHING IS PASSED BY REFERENCE!!!!!!
