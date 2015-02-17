@@ -3,7 +3,10 @@
 # TODO
 # http://www.codingame.com/replay/33034817
 
-
+# TODO After alpha testing: (see replays)
+#   1. moves_to_clear wall
+#   2. check for if they are one from gap ahead of time
+#   3. best_path
 # NOTES!
 # EVERYTHING IS PASSED BY REFERENCE!!!!!!
 # LOCKDOWN: force both of us into our forward and therefore his backward which puts us both in the same boat and go shortest path to win!
