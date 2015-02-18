@@ -189,10 +189,8 @@ def one_away_from_gap(players, player_id, walls):
         if player_y == h - 2:
             if not wall_exists(player_x + vert_x_offset, player_y - 1, 'V', walls):
                 return not wall_exists(player_x + horiz_x_offset, player_y + 1, 'H', walls)
-        else:
-            return False
-    else:
-        return False
+
+    return False
 
 
 # Returns UP if player_to_be_moved needs to go UP to reach destination_player's row, and
