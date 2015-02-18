@@ -7,6 +7,10 @@
 #   1. moves_to_clear wall
 #   2. check for if they are one from gap ahead of time
 #   3. best_path
+
+# TODO MATUSH comment your untested functions describing how they work (ex: build vertical and horizontal wall lockdown functions)
+
+
 # NOTES!
 # EVERYTHING IS PASSED BY REFERENCE!!!!!!
 # LOCKDOWN: force both of us into our forward and therefore his backward which puts us both in the same boat and go shortest path to win!
@@ -32,14 +36,26 @@ def two_players(players, walls, my_id):
 
     if in_lockdown:
         lockdown(players, walls, my_id)
-    # elif ():
-        # TODO if oppo is one away from his gap, then H wall him
-        # e.g. http://www.codingame.com/replay/33017521
-        # e.g http://www.codingame.com/replay/33020593
-    elif (is_one_move_from_win(players, his_id, walls)): 
+    elif is_one_move_from_win(players, his_id, walls): 
         # oppo is about to win!
         # vertical wall them, forcing them towards us, using gap strategy, and blocking their exit
         build_vertical_wall_lockdown(players, his_id, walls)
+    elif one_away_from_gap(players, his_id, walls):
+        # if oppo is one away from his gap, then H wall him
+        # TODO Untested
+        # This fixes following example issues:
+            # e.g. http://www.codingame.com/replay/33017521
+            # e.g http://www.codingame.com/replay/33020593
+        in_lockdown = True
+        lockdown(players, walls, my_id)
+        # option below caused conflicts when going into lockdown, so I replaced it with initiating lockdown
+        #if players[his_id]["y"] ==  1:
+            # gap is up
+            # build_horizontal_wall_lockdown(players, his_id, "UP", walls)
+
+        #elif players[his_id]["y"] == h - 2:
+            # gap is down
+            #build_horizontal_wall_lockdown(players, his_id, "DOWN", walls)
     else:
         move = best_path(players, my_id, walls)
 
@@ -76,11 +92,11 @@ def lockdown(players, walls, my_id):
          build_vertical_wall_lockdown(players, his_id, walls)
     elif (moves_to_clear == 2):
         horizontal_phase = True # activate horizontal phase
-        if (oppo_gap == "UP" and players[his_id]["y"] >= players[myId]["y"]): # oppo is equal or above us
+        if (oppo_gap == "UP" and players[his_id]["y"] <= players[myId]["y"]): # oppo is equal or above us
             # build H wall above him
             build_horizontal_wall_lockdown(players, his_id, oppo_gap, walls)
             return
-        elif (oppo_gap == "DOWN" and players[his_id]["y"] <= players[my_id]["y"]): # oppo is equal or below us
+        elif (oppo_gap == "DOWN" and players[his_id]["y"] >= players[my_id]["y"]): # oppo is equal or below us
             # build H wall below him
             build_horizontal_wall_lockdown(players, his_id, oppo_gap, walls)
             return
@@ -140,6 +156,37 @@ def is_in_bounds(position):
     if (position["x"] >= w or position["x"] < 0 or position["y"] >= h or position["y"] < 0):
         return False
     return True
+
+
+# Only for two players, works for gap in last column before endzone ONLY
+# Tells us if they are going to clear the gap in two moves or not
+# TODO Untested
+def one_away_from_gap(players, player_id, walls):
+    endzone = find_endzone(player_id)
+    player_x = players[player_id]["x"]
+    player_y = players[player_id]["y"]
+    if endzone == "RIGHT":
+        col_next_to_endzone = w - 2
+        vert_x_offset = 1
+        horiz_x_offset = 0
+    elif endzone == "LEFT":
+        col_next_to_endzone = 1
+        vert_x_offset = -1
+        horiz_x_offset = -1
+    else:
+        print >> sys.stderr, "Bad endzone in one_away_from_gap"
+
+    if player_x == col_next_to_endzone:
+        if player_y == 1:
+            if not wall_exists(player_x + vert_x_offset, player_y - 1, 'V', walls):
+                return not wall_exists(player_x + horiz_x_offset, player_y, 'H', walls)
+        if player_y == h - 2:
+            if not wall_exists(player_x + vert_x_offset, player_y - 1, 'V', walls):
+                return not wall_exists(player_x + horiz_x_offset, player_y + 1, 'H', walls)
+        else:
+            return False
+    else:
+        return False
 
 
 # Returns UP if player_to_be_moved needs to go UP to reach destination_player's row, and
@@ -266,6 +313,7 @@ def wall_in_front(walls, position, heading):
 #####TODO 8
 #### TODO check for later maybe, doesn't take into account other walls in the players
   ## path when trying to circumvent wall_in_front
+# Returns 1 if no wall in front
 def moves_to_clear_wall(walls, position, heading):
     originalPos = dict(position)
 
@@ -276,8 +324,8 @@ def moves_to_clear_wall(walls, position, heading):
     else:
         print >> sys.stderr, "Bad heading for moves_to_clear_wall"
 
-    movesUpOrLeft = 0
-    movesDownOrRight = 0
+    movesUpOrLeft = 1
+    movesDownOrRight = 1
     #check num moves to clear by moving up
     while wall_in_front(walls, originalPos, heading):
         originalPos["y"] -= 1
@@ -485,7 +533,7 @@ def build_horizontal_wall_lockdown(players, receiver_id, wall_pos, walls):
             else:
                 print >> sys.stderr, "Err: invalid wall -- aka ohhhh shitttt, we got some casses to add in build horizontal wall"
     else:
-        print >> sys.stderr, "Err: build_horizontal_wall_lockdown was given nonexistant endzone"
+        print >> sys.stderr, "Err: build_horizontal_wall_lockdown was given nonexistent endzone"
 
 # TODO UNTESTED
 def build_vertical_wall_lockdown(players, receiver_id, walls):
@@ -587,17 +635,17 @@ def should_lock(players, his_id, walls, my_id):
 def lock(players, walls, my_id):
     global locked
 
+    his_id = 1 if my_id == 0 else 0
     num_away = should_lock(players, his_id, walls, my_id)
     last_h_wall = lockdown_h_walls[-1]
-    his_id = 1 if my_id == 0 else 0
     his_endzone = find_endzone(his_id)
     # where oppo is in relation to H wall (below it or above it)
     his_pos = "DOWN" if players[his_id]['y'] >= last_h_wall['wallY'] else "UP"
     pos_x, pos_y = None, None
 
     if num_away == 4:
-        if (is_valid_wall(players, my_id, walls, last_h_wall["wallX"] + 2, last_h_wall["wallY"], last_h_wall["wallO"])):
-            print last_h_wall["wallX"] + 2, last_h_wall["wallY"], last_h_wall["wallO"]
+        if (is_valid_wall(players, my_id, walls, last_h_wall["wallX"] + 2, last_h_wall["wallY"], 'H')):
+            print last_h_wall["wallX"] + 2, last_h_wall["wallY"], 'H'
             locked = True
         else:
             print >> sys.stderr, "Err: Invalid H wall in lock num_away == 4"

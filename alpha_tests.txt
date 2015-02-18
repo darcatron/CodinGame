@@ -1,0 +1,24 @@
+This is a file that lists test cases (via manual mod against a specific player).
+It should also reference a replay of playing that player and the reason the case is included here.
+
+--------------------------------------------------------------------------------------------------------------
+Case 1 (12/17/2015):
+
+Opponent- shu
+
+Manual Mod Info- 
+height=9
+positions=8 5 5 7
+width=9
+symmetric=false
+
+Replay link- http://www.codingame.com/replay/33625249
+
+Reasons to include-
+1. Demonstrates how Sean fixed the problem where the opponent reached the gap and we didn't horizontal wall him
+   backwards in advance before it was too late, and instead tried to place an invalid vertical wall
+2. Demonstrates a problem with our best path... as in we go back and forth a bunch of times which sucks
+3. Our should_lock and lock functions ran and worked! That was cool to see
+
+
+---------------------------------------------------------------------------------------------------------------
