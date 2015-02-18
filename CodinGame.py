@@ -4,9 +4,12 @@
 # http://www.codingame.com/replay/33034817
 
 # TODO After alpha testing: (see replays)
-#   1. moves_to_clear wall
-#   2. check for if they are one from gap ahead of time
+#   1. moves_to_clear wall #done (Matush verify)
+#   2. check for if they are one from gap ahead of time #done (Matush verify)
 #   3. best_path
+#   4. Sometimes get to should_lock before placing any horiz walls, which gives list index error (http://www.codingame.com/replay/33628014)
+#   5. We missed a check to is_valid_wall (http://www.codingame.com/replay/33628975)
+#   6. WHAT THE BALLS (http://www.codingame.com/replay/33630299) and (http://www.codingame.com/replay/33631635) seems like something wrong with vertical wall lockdwon function
 
 # TODO MATUSH comment your untested functions describing how they work (ex: build vertical and horizontal wall lockdown functions)
 
@@ -36,6 +39,8 @@ def two_players(players, walls, my_id):
 
     if in_lockdown:
         lockdown(players, walls, my_id)
+    # elif we are one move from win
+        # move for win
     elif is_one_move_from_win(players, his_id, walls): 
         # oppo is about to win!
         # vertical wall them, forcing them towards us, using gap strategy, and blocking their exit
@@ -91,14 +96,15 @@ def lockdown(players, walls, my_id):
     elif (moves_to_clear == 1):
          build_vertical_wall_lockdown(players, his_id, walls)
     elif (moves_to_clear == 2):
-        horizontal_phase = True # activate horizontal phase
         if (oppo_gap == "UP" and players[his_id]["y"] <= players[myId]["y"]): # oppo is equal or above us
             # build H wall above him
             build_horizontal_wall_lockdown(players, his_id, oppo_gap, walls)
+            horizontal_phase = True
             return
         elif (oppo_gap == "DOWN" and players[his_id]["y"] >= players[my_id]["y"]): # oppo is equal or below us
             # build H wall below him
             build_horizontal_wall_lockdown(players, his_id, oppo_gap, walls)
+            horizontal_phase = True
             return
 
     print best_path(players, my_id, walls)
