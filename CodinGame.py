@@ -533,20 +533,19 @@ def goal_possible(pos, cur_goal, walls):
     return True
 
 # UNTESTED
-
 def nearest_vertical_wall_in_row(start_pos, player_id, walls):
     # must account for moving left or moving right
     endzone = find_endzone(player_id)
     pos_x = start_pos['x']
     pos_y = start_pos['y']
 
-    while (pos_x < w and pos_x >= 1):
+    while (pos_x < w and pos_x > 0):
         if (endzone == "RIGHT"):
-            pos_x += 1
             if (wall_exists(pos_x, pos_y, 'V', walls)):
                 return {'x': pos_x, 'y': pos_y}
             elif (wall_exists(pos_x, pos_y - 1, 'V', walls)):
                 return {'x': pos_x, 'y': pos_y - 1}
+            pos_x += 1
         elif (endzone == "LEFT"):
             if (wall_exists(pos_x, pos_y, 'V', walls)):
                 return {'x': pos_x, 'y': pos_y}
