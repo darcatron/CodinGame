@@ -435,6 +435,7 @@ def best_path(players, player_id, walls):
     else:
         return gap_strategy(players, player_id, walls)
 
+# UNTESTED
 # determines the direction of the gap based on a wall that is blocking the player's path.
 def direction_to_gap(walls, wall_in_path, position, heading):
     if heading == "RIGHT" or heading == "LEFT":
@@ -451,6 +452,7 @@ def direction_to_gap(walls, wall_in_path, position, heading):
 
 
 # UNTESTED
+# No good for three players... for now
 def gap_strategy(players, player_id, walls):
     cur_goal = goals[-1]
     endzone = find_endzone(player_id)
@@ -459,37 +461,53 @@ def gap_strategy(players, player_id, walls):
         goals.pop()
         cur_goal = goals[-1]
 
-    if cur_goal['y'] == players[player_id]['y']:  
-        # goal is in same row as us
-        wall_ahead = nearest_vertical_wall_in_row(players[player_id], player_id, walls)
+    if cur_goal['y'] == players[player_id]['y']:
+        # goal is in same row as us, find which way
+        if cur_goal['x'] < players[player_id]['x']:
+            goal_dir = "LEFT"
+        else:
+            goal_dir = "RIGHT"
+        
+        # see if there is a wall between us and our goal
+        wall_ahead = nearest_vertical_wall_in_row(players[player_id], player_id, walls, cur_goal, goal_dir)
 
         if (wall_ahead):
-            # must overcome the wall
-            temp_walls = (dict walls)
-            temp_walls.append(wall_ahead)
-            if (endzone == "RIGHT"):
-                # get gap pretending wall is directly in fronts
-                # From Sean: TODO This is wrong. We need to base the gap off the wall that exists. Not off the wall at the coordinate in front of us
-                # Also dict elements can't be added with the "+" operator to lists like you tried to do with walls
-                # Should get to top of gap (a bunch of walls on top of each other) rather than just get to the top of this one wall
-                gap_direction = direction_to_gap(walls + {"wallX": players[player_id]['x'] + 1, "wallY": wall_ahead['y'], "wallO": 'V'}, players[player_id], endzone)
+            # must overcome the wall, so get gap direction
+            gap_direction = direction_to_gap(walls, wall_ahead, players[player_id], goal_dir)
+            if (goal_dir == "RIGHT"):
+                # Should get to a real gap (a way through after a bunch of walls on top of each other) rather than just get to the top of this one wall
                 if (gap_direction == "UP"):
                     goals.append({'x': wall_ahead['wallX'], 'y': wall_ahead['wallY'] - 1})
                 elif (gap_direction == "DOWN"):
                     goals.append({'x': wall_ahead['wallX'], 'y': wall_ahead['wallY'] + 2})
-            elif (endzone == "LEFT"):
+            elif (goal_dir == "LEFT"):
                 # get gap pretending wall is directly in fronts
-                gap_direction = direction_to_gap(walls + {"wallX": players[player_id]['x'], "wallY": wall_ahead['y'], "wallO": 'V'}, players[player_id], endzone)
+                gap_direction = direction_to_gap(walls, wall_ahead, players[player_id], goal_dir)
                 if (gap_direction == "UP"):
                     goals.append({'x': wall_ahead['wallX'] - 1, 'y': wall_ahead['wallY'] - 1})
                 elif (gap_direction == "DOWN"):
                     goals.append({'x': wall_ahead['wallX'] - 1, 'y': wall_ahead['wallY'] + 2})
+        else:
+            #TODO no wall ahead to block goal, just move goal_dir, correct?
+            pass
+    # TODO? elif (we are on same col as goal)
+        # Do similar gap strategy but horizontally and not vertically
+        # Not sure if we need this, but it could be a good one
 
     path = shortest_path(players[player_id], cur_goal, walls) # TODO
     # return path[0]
     # matush_path({'x': players[player_id]['x'], 'y': players[player_id]['y']}, cur_goal)
     # path = do_a_star_algo(players[player_id], cur_goal, walls)
     return path[0]
+
+
+# UNTESTED
+# No good for three players
+# def get_new_goal(walls, wall_ahead, old_goal_dir, gap_direction):
+#     if gap_direction == "UP":
+#         while wall_exists(
+
+
 
 # UNTESTED
 # checks if a coordinate goal is satisfied
@@ -509,20 +527,22 @@ def goal_possible(pos, cur_goal, walls):
     return True
 
 # UNTESTED
-def nearest_vertical_wall_in_row(start_pos, player_id, walls):
-    # must account for moving left or moving right
-    endzone = find_endzone(player_id)
+# Finds nearest vertical wall that blocks advancing in that row
+def nearest_vertical_wall_in_row(start_pos, player_id, walls, goal, heading):
+    # must account for moving left or moving right depending on heading
     pos_x = start_pos['x']
     pos_y = start_pos['y']
 
-    while (pos_x < w and pos_x > 0):
-        if (endzone == "RIGHT"):
+
+    if (heading == "RIGHT"):
+        while (pos_x < goal['x']):
             if (wall_exists(pos_x, pos_y, 'V', walls)):
                 return {'wallX': pos_x, 'wallY': pos_y, 'wallO': 'V'}
             elif (wall_exists(pos_x, pos_y - 1, 'V', walls)):
                 return {'wallX': pos_x, 'wallY': pos_y - 1, "wallO": 'V'}
             pos_x += 1
-        elif (endzone == "LEFT"):
+    elif (heading == "LEFT"):
+        while (pos_x > goal['x']):
             if (wall_exists(pos_x, pos_y, 'V', walls)):
                 return {'wallX': pos_x, 'wallY': pos_y, "wallO": 'V'}
             elif (wall_exists(pos_x, pos_y - 1, 'V', walls)):
