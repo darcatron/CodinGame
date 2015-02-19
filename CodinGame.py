@@ -7,7 +7,7 @@
 #   1. moves_to_clear wall #done (Matush verify)
 #   2. check for if they are one from gap ahead of time #done (Matush verify)
 #   3. best_path
-#   4. Sometimes get to should_lock before placing any horiz walls, which gives list index error (http://www.codingame.com/replay/33628014)
+#   4. Sometimes get to should_lock before placing any horiz walls, which gives list index error
 #   5. We missed a check to is_valid_wall (http://www.codingame.com/replay/33628975)
 #   6. WHAT THE BALLS (http://www.codingame.com/replay/33630299) and (http://www.codingame.com/replay/33631635) seems like something wrong with vertical wall lockdwon function
 
@@ -424,36 +424,40 @@ def win_path_exists(walls, position, endzone, order, visited):
     return False
 
 # TODO UNTESTED
-# TODO fix http://www.codingame.com/replay/33033473
-def best_path(players, playerId, walls):
+# TODO fix http://www.codingame.com/replay/33033473 -- OH SHIT
+# http://www.codingame.com/replay/33628014
+def best_path(players, player_id, walls):
     if (in_lockdown): # TODO check if fails many times
         # TODO go towards "our" exit, this might be the same as the gap_strategy(). Check it when gap is written
-        return gap_strategy(players, playerId, walls) # change if this does not work well
+        return gap_strategy(players, player_id, walls) # change if this does not work well
     else:
-        return gap_strategy(players, playerId, walls)
+        return gap_strategy(players, player_id, walls)
 
 # TODO UNTESTED
 # Sean thinks it is possible that we might have to add is_possible_to_win before every return that hasn't been
 # checked yet (or at least most of them)
-def gap_strategy(players, playerId, walls):
-    endzone = find_endzone(playerId)
+def gap_strategy(players, player_id, walls):
+    endzone = find_endzone(player_id)
 
-    if wall_in_front(walls, players[playerId], endzone):
-        dir_to_move = direction_to_gap(walls, players[playerId], endzone)
+    if wall_in_front(walls, players[player_id], endzone):
+        dir_to_move = direction_to_gap(walls, players[player_id], endzone)
 
-        if (is_possible_to_win(players[playerId], playerId, walls, dir_to_move)): 
+        if (is_possible_to_win(players[player_id], player_id, walls, dir_to_move)): 
             # moving towards gap is a good idea (aka is not a dead end) using restricted is_possible_to_win
-            if wall_in_front(walls, players[playerId], dir_to_move):
-                return find_opposite_endzone(playerId) # move backwards. This triggers lockdown
+            if wall_in_front(walls, players[player_id], dir_to_move):
+                return find_opposite_endzone(player_id) # move backwards. This triggers lockdown
             return dir_to_move
-        elif wall_in_front(walls, players[playerId], opposite_direction(dir_to_move)):
-            return find_opposite_endzone(playerId) # move backwards. This triggers lockdown
+        elif wall_in_front(walls, players[player_id], opposite_direction(dir_to_move)):
+            return find_opposite_endzone(player_id) # move backwards. This triggers lockdown
         
         # otherwise go other direction
         return opposite_direction(dir_to_move)
     else:
         # move forward towards endzone
-        return endzone
+        if (is_possible_to_win(players[player_id], player_id, walls, endzone)):
+            return endzone
+        else:
+            print >> sys.stderr, "in gap_strategy, moving towards endzone does not allow for a win"
 
 # determines the direction of the gap based on the player's endzone.
 # Pre Condition: wall must be in front of position
