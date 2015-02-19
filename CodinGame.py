@@ -444,16 +444,16 @@ def gap_strategy(players, player_id, walls):
         goals.pop()
         cur_goal = goals[-1]
 
-    if cur_goal['y'] = players[player_id]['y']:  
+    if cur_goal['y'] == players[player_id]['y']:  
         # goal is in same row as us
         wall_ahead = nearest_vertical_wall_in_row(players[player_id], player_id, walls)
 
         if (wall_ahead):
             # must overcome the wall
             if (endzone == "RIGHT"):
-                goals.append({'x': wall_ahead['x'], 'y': wall_ahead['y'] - 1)
+                goals.append({'x': wall_ahead['x'], 'y': wall_ahead['y'] - 1})
             elif (endzone == "LEFT"):
-                goals.append({'x': wall_ahead['x'] - 1, 'y': wall_ahead['y'] - 1)
+                goals.append({'x': wall_ahead['x'] - 1, 'y': wall_ahead['y'] - 1})
 
     shorest_path() # TODO
 
@@ -541,7 +541,7 @@ def calculate_shortest_path(position, goal, walls, visited, moves_so_far):
         # TODO!!!! NEED TO SOMEHOW CREATE 4 DEEP COPIES OF THIS 2D ARRAY!!!!!!!!
         visited_temps[i] = [x[:] for x in visited]
 
-    long_array = [0] * (w * h + 1) # Guarranteed to have longer length than any possible path
+    long_array = [0] * (w * h + 1) # Guaranteed to have longer length than any possible path
     # Does 3 checks:
         # 1. the neighbor is in bounds
         # 2. there's not a wall blocking the way to neighbor
