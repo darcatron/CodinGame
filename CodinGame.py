@@ -438,40 +438,60 @@ def best_path(players, player_id, walls):
 # checked yet (or at least most of them)
 def gap_strategy(players, player_id, walls):
     cur_goal = goals[-1]
+    endzone = find_endzone(player_id)
 
-    while ()    
+    while (goal_complete(cur_goal) or not goal_possible(cur_goal)):
+        goals.pop()
+        cur_goal = goals[-1]
 
-    # endzone = find_endzone(player_id)
+    if cur_goal['y'] = players[player_id]['y']:  
+        # goal is in same row as us
+        wall_ahead = nearest_vertical_wall_in_row(players[player_id], player_id, walls)
 
-    # if wall_in_front(walls, players[player_id], endzone):
-    #     dir_to_move = direction_to_gap(walls, players[player_id], endzone)
+        if (wall_ahead):
+            # must overcome the wall
+            if (endzone == "RIGHT"):
+                goals.append({'x': wall_ahead['x'], 'y': wall_ahead['y'] - 1)
+            elif (endzone == "LEFT"):
+                goals.append({'x': wall_ahead['x'] - 1, 'y': wall_ahead['y'] - 1)
 
-    #     if (is_possible_to_win(players[player_id], player_id, walls, dir_to_move)): 
-    #         # moving towards gap is a good idea (aka is not a dead end) using restricted is_possible_to_win
-    #         if wall_in_front(walls, players[player_id], dir_to_move):
-    #             return find_opposite_endzone(player_id) # move backwards. This triggers lockdown
-    #         return dir_to_move
-    #     elif wall_in_front(walls, players[player_id], opposite_direction(dir_to_move)):
-    #         return find_opposite_endzone(player_id) # move backwards. This triggers lockdown
-        
-    #     # otherwise go other direction
-    #     return opposite_direction(dir_to_move)
-    # else:
-    #     # move forward towards endzone
-    #     if (is_possible_to_win(players[player_id], player_id, walls, endzone)):
-    #         return endzone
-    #     else:
-    #         print >> sys.stderr, "in gap_strategy, moving towards endzone does not allow for a win"
+    shorest_path() # TODO
 
-# TODO
+# UNTESTED
 # checks if a coordinate goal is satisfied
-def goal_complete():
-    pass
+def goal_complete(cur_pos, goal):
+    if (pos['x'] == goal['x'] and pos['y'] == goal['y']):
+        return True
 
-# TODO
+    return False
+
+# UNTESTED
 # checks if a coordinate goal is reachable and does not lead to a dead end
 def goal_possible():
-    pass
+    return shorest_path() # TODO
+
+# UNTESTED
+def nearest_vertical_wall_in_row(start_pos, player_id, walls):
+    # must account for moving left or moving right
+    endzone = find_endzone(player_id)
+    pos_x = start_pos['x']
+    pos_y = start_pos['y']
+
+    while (pos_x <= 8 or pos_x >= 1):
+        if (endzone == "RIGHT"):
+            pos_x += 1
+            if (wall_exists(pos_x, pos_y, 'V', walls)):
+                return {'x': pos_x, 'y': pos_y}
+            elif (wall_exists(pos_x, pos_y - 1, 'V', walls)):
+                return {'x': pos_x, 'y': pos_y - 1}
+        elif (endzone == "LEFT"):
+            if (wall_exists(pos_x, pos_y, 'V', walls)):
+                return {'x': pos_x, 'y': pos_y}
+            elif (wall_exists(pos_x, pos_y - 1, 'V', walls)):
+                return {'x': pos_x, 'y': pos_y - 1}
+            pos_x -= 1
+
+    return False # no wall
 
 
 # determines the direction of the gap based on the player's endzone.
@@ -557,7 +577,7 @@ def build_horizontal_wall_lockdown(players, receiver_id, wall_pos, walls):
     else:
         print >> sys.stderr, "Err: build_horizontal_wall_lockdown was given nonexistent endzone"
 
-# TODO UNTESTED
+# UNTESTED
 # builds a vertical wall above or below the receiver depending on
 #  receiver's positon on the grid. The oppo_gap is used to determine 
 #  which where the wall should be placed
@@ -605,7 +625,7 @@ def build_vertical_wall_lockdown(players, receiver_id, walls):
         print >> sys.stderr, "build_vertical_wall_lockdown got an endzone that has not yet been implemented"
 
 
-# TODO Untested!
+# Untested!
 # Helper for should_lock that checks one wall at a time
 # Returns +/- 4 for case when we are one horizontal wall from locking, +/- 3 when there is
 # a one cell gap, or False otherwise
@@ -628,7 +648,7 @@ def should_h_wall_lock(player, h_wall, walls, wall_offset):
     return False
 
 
-# TODO UNTESTED
+# UNTESTED
 # TODO Maybe should return the offset variable so it could return either positive or negative 3 or 4 for the true case
 # Returns 4 if we are one horizontal wall from lockdown
 # Returns 3 if we currently have a one cell gap between our horizontal wall and the vertical, which
@@ -695,7 +715,7 @@ def lock(players, walls, my_id):
         print >> sys.stderr, "Bad num_away in lock function"
 
 
-# TODO UNTESTED
+# UNTESTED
 # Begins the 2 - 3 wall build strategy to lock in the oppo.
 #  Each call only builds whichever part of the wall is necessary
 # See diagram for illustration of wall postions 2 and 3
@@ -747,7 +767,7 @@ def lock_2_3(existing_wall_x, existing_wall_y, walls, players, my_id):
             print >> sys.stderr, "Err: Invalid wall 2 in lock_2_3" 
 
 
-# TODO UNTESTED
+# UNTESTED
 # Begins the 1 - 4 - maybe 6 wall build strategy to lock in the oppo.
 #  Each call only builds whichever part of the wall is necessary
 # See diagram for illustration of wall postions 1, 4, and 6
@@ -817,6 +837,7 @@ lockdown_h_walls = []
 oppo_gap = None
 horizontal_phase = False
 goals = None
+
 # game loop
 while 1:
     players = []
@@ -829,8 +850,8 @@ while 1:
         
         players.append({"x": x,"y": y, "wallsLeft" : wallsLeft})
         
-        if (goals == None):
-            goals = [{'x': x, 'y': y}]
+        if (goals == None and player == myId):
+            goals = [{'x': w - 1, 'y': y}]
 
     wallCount = int(raw_input()) # number of walls on the board
     for i in xrange(wallCount):
