@@ -483,8 +483,9 @@ def direction_to_gap(walls, position, endzone):
 def gap_strategy(players, player_id, walls):
     cur_goal = goals[-1]
     endzone = find_endzone(player_id)
+    gap_direction = direction_to_gap(walls, players[player_id], endzone)
 
-    while (goal_complete(players[player_id], cur_goal) or not goal_possible(players[player_id], cur_goal, walls)):
+    while (goal_complete(cur_goal) or not goal_possible(cur_goal)):
         goals.pop()
         cur_goal = goals[-1]
 
@@ -495,35 +496,31 @@ def gap_strategy(players, player_id, walls):
         if (wall_ahead):
             # must overcome the wall
             if (endzone == "RIGHT"):
-                # get gap pretending wall is directly in fronts
-                gap_direction = direction_to_gap(walls + {"wallX": players[player_id]['x'] + 1, "wallY": wall_ahead['y'], "wallO": 'V'}, players[player_id], endzone)
                 if (gap_direction == "UP"):
                     goals.append({'x': wall_ahead['x'], 'y': wall_ahead['y'] - 1})
                 elif (gap_direction == "DOWN"):
                     goals.append({'x': wall_ahead['x'], 'y': wall_ahead['y'] + 2})
             elif (endzone == "LEFT"):
-                # get gap pretending wall is directly in fronts
-                gap_direction = direction_to_gap(walls + {"wallX": players[player_id]['x'], "wallY": wall_ahead['y'], "wallO": 'V'}, players[player_id], endzone)
                 if (gap_direction == "UP"):
                     goals.append({'x': wall_ahead['x'] - 1, 'y': wall_ahead['y'] - 1})
                 elif (gap_direction == "DOWN"):
                     goals.append({'x': wall_ahead['x'] - 1, 'y': wall_ahead['y'] + 2})
 
-    shortest_path(players[player_id], cur_goal, walls) # TODO
-    # matush_path({'x': players[player_id]['x'], 'y': players[player_id]['y']}, cur_goal)
+    # shortest_path() # TODO
+    matush_path({'x': players[player_id]['x'], 'y': players[player_id]['y']}, cur_goal)
 
 # UNTESTED
 # checks if a coordinate goal is satisfied
 def goal_complete(cur_pos, goal):
-    if (cur_pos['x'] == goal['x'] and cur_pos['y'] == goal['y']):
+    if (pos['x'] == goal['x'] and pos['y'] == goal['y']):
         return True
 
     return False
 
 # UNTESTED
 # checks if a coordinate goal is reachable and does not lead to a dead end
-def goal_possible(pos, cur_goal, walls):
-    return shortest_path(pos, cur_goal, walls) # TODO
+def goal_possible():
+    return shorest_path() # TODO
 
 # UNTESTED
 def nearest_vertical_wall_in_row(start_pos, player_id, walls):
@@ -617,7 +614,7 @@ def shortest_path(player_pos, goal, walls):
 
 
     fewest_moves = calculate_shortest_path(player_pos, goal, walls, visited, moves, long_array)
-    print fewest_moves[0]
+    return fewest_moves
 
 
 # Recursive function for shortest_path
@@ -684,89 +681,6 @@ def calculate_shortest_path(position, goal, walls, visited, moves_so_far, long_a
         moves_left = long_array
 
     return get_min_path(moves_right, moves_up, moves_down, moves_left, long_array)
-
-
-
-def distance_from(position, goal):
-    return abs(goal["x"] - position["x"]) + abs(goal["y"] - position["y"])
-
-# Goes through position set and finds the position that has the lowest score by indexing
-# into the scores array
-def get_min_score_pos(position_set, scores):
-    min_score_pos = position_set[0]
-    min_score = scores[min_score_pos["x"]][min_score_pos["y"]]
-    for pos in position_set:
-        if scores[pos["x"]][pos["y"]] <= min_score:
-            min_score = scores[pos["x"]][pos["y"]]
-            min_score_pos = pos
-
-    return min_score_pos
-
-
-def reconstruct_path(came_from, current):
-    total_path = [current]
-    while current in came_from:
-        current = came_from[current["x"]][current["y"]]
-        total_path.append(current)
-
-    return total_path
-
-
-
-# should return a list of positions which is a path to the goal from the start
-# will NOT return in terms of RIGHT, UP, DOWN, and LEFT
-# TODO doesn't take into account walls yet
-# TODO don't let player go through endzone to get to goal?
-def do_a_star_algo(position, goal, walls):
-    open_set = [dict(position)] # initial node to be evaluated is only start position
-    closed_set = []
-    came_from = [[None for x in range(9)] for y in range(9)] # initialize empty for all cells in grid
-    g_score = [["inf" for x in range(9)] for y in range(9)] # all g_scores are infinity to start
-    g_score[position["x"]][position["y"]] = 0 # initialize g_score of start to 0
-    f_score = [["inf" for x in range(9)] for y in range(9)] # all f_scores are infinity to start
-    f_score[position["x"]][position["y"]] = distance_from(position, goal) # initialize f_score of start to the number of moves to goal without taking into account walls 
-
-    # while there are nodes left to evaluate
-    while open_set != []:
-        # current node is the one in the open set with lowest f_score value
-        current = get_min_score_pos(open_set, f_score)
-
-        # If we reached goal
-        if current["x"] == goal["x"] and current["y"] == goal["y"]:
-            # reconstruct the path using came_from and return it
-            return reconstruct_path(came_from, current)
-
-        # Add it to closed set and remove current from open_set
-        closed_set.append(current)
-        open_set.remove(current)
-
-        # Get neighbors
-        right_pos = {"x": current["x"] + 1, "y": current["y"]}
-        up_pos = {"x": current["x"], "y": current["y"] - 1}
-        down_pos = {"x": current["x"], "y": current["y"] + 1}
-        left_pos = {"x": current["x"] - 1, "y": current["y"]}
-        neighbors = [right_pos, up_pos, down_pos, left_pos]
-
-        for neighbor in neighbors:
-            # if neighbor is not in closed set
-            if not (neighbor in closed_set):
-                # tentative_g_score = g_score of current node + 1
-                tentative_g_score = g_score[current["x"]][current["y"]] + 1
-
-                # if neighbor not in open_set or tentative_g_score < g_score[neighborX][neighborY]
-                if (not (neighbor in open_set)) or (tentative_g_score < g_score[neighbor["x"]][neighbor["y"]]):
-                    # came_from[neighborX][neighborY] = current node (something like: {'x': 4, 'y': 4})
-                    came_from[neighbor["x"]][neighbor["y"]] = current # TODO May have to make a copy of current here
-                    g_score[neighbor["x"]][neighbor["y"]] = tentative_g_score
-                    f_score[neighbor["x"]][neighbor["y"]] = g_score[neighbor["x"]][neighbor["y"]] + distance_from(neighbor, goal)
-                    # if neighbor not in open_set
-                    if not (neighbor in open_set):
-                        # add neighbor to open_set
-                        open_set.append(neighbor)
-
-    # No path found
-    return False
-
 
 
 def get_min_path(moves_right, moves_up, moves_down, moves_left, long_array):
@@ -1081,7 +995,7 @@ def lock_1_4(players, walls, my_id):
 # h: height of the board
 # playerCount: number of players (2 or 3)
 # myId: id of my player (0 = 1st player, 1 = 2nd player, ...)
-w, h, playerCount, myId = [int(i) for i in raw_input().split()]
+w = h = 9
 locked, in_lockdown = False, False
 lockdown_h_walls = []
 oppo_gap = None
@@ -1089,52 +1003,19 @@ horizontal_phase = False
 goals = None
 min_so_far = 15
 
-# game loop
-while 1:
-    players = []
-    walls = []
-    for player in range(playerCount):
-        # x: x-coordinate of the player
-        # y: y-coordinate of the player
-        # wallsLeft: number of walls available for the player
-        x, y, wallsLeft = [int(i) for i in raw_input().split()]
-        
-        players.append({"x": x,"y": y, "wallsLeft" : wallsLeft})
-        
-        if (goals == None and player == myId):
-            goals = [{'x': w - 1, 'y': y}]
 
-    wallCount = int(raw_input()) # number of walls on the board
-    for i in xrange(wallCount):
-        # wallX: x-coordinate of the wall
-        # wallY: y-coordinate of the wall
-        # wallOrientation: wall orientation ('H' or 'V')
-        wallX, wallY, wallOrientation = raw_input().split()
-        wallX = int(wallX)
-        wallY = int(wallY)
-        walls.append({"wallX" : wallX, "wallY" : wallY, "wallO" : wallOrientation})
+position = {"x": 0, "y": 3}
+goal = {"x": 1, "y": 3}
+walls = []
+print shortest_path(position, goal, walls)
+print "^ Should just be RIGHT since goal is right next to player ^"
 
-        
-    if playerCount == 2:
-        two_players(players, walls, myId)
-    else:
-        three_players(players, walls, myId)
-        
-        
-        # print >> sys.stderr, "wallX, wallY", wallX, wallY
-        # wall in front of me
-        # only plays defensively left to right
-        # if (wallOrientation == 'V' and wallX == my_pos[0] + 1 and (wallY == my_pos[1] or wallY + 1 == my_pos[1])):
-        #     if (my_pos[1] == 0):
-        #         to_print = "DOWN"
-        #     elif (my_pos[1] == w - 1):
-        #         to_print = "UP"
-        #     elif (wallY == my_pos[1]):
-        #         to_print = "UP"
-        #     elif (wallY + 1 == my_pos[1]):
-        #         to_print = "DOWN"
-        
-    # action: LEFT, RIGHT, UP, DOWN or "putX putY putOrientation" to place a wall    
-    # Write an action using print
-    # To debug: print >> sys.stderr, "Debug messages..."
-    
+
+goal = {"x": 8, "y": 3}
+print shortest_path(position, goal, walls)
+print "^ Should just be 8 RIGHTs ^"
+
+
+goal = {"x": 5, "y": 7}
+print shortest_path(position, goal, walls)
+print "^ Should print 5 RIGHTs then 4 DOWNs ^"
