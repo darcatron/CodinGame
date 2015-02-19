@@ -611,6 +611,8 @@ def reconstruct_path(came_from, current):
 
 # should return a list of positions which is a path to the goal from the start
 # will NOT return in terms of RIGHT, UP, DOWN, and LEFT
+# TODO doesn't take into account walls yet
+# TODO don't let player go through endzone to get to goal?
 def do_a_star_algo(position, goal, walls):
     open_set = [dict(position)] # initial node to be evaluated is only start position
     closed_set = []
