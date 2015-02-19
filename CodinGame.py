@@ -495,6 +495,11 @@ def nearest_vertical_wall_in_row(start_pos, player_id, walls):
 
 
 def shortest_path(player_pos, goal, walls):
+    global min_so_far
+    
+    # reset min_so_far to 15
+    min_so_far = 15
+
 
     if player_pos["x"] == goal["x"] and player_pos["y"] == goal["y"]:
         print >> sys.stderr, "We are at goal. Something bad was passed to shortest_path"
@@ -517,10 +522,16 @@ def shortest_path(player_pos, goal, walls):
 # Base case: at goal so return moves_so_far
 # Recursive case: not at goal, so try every direction that hasn't been visited and doesn't have a wall in it and is in bounds
 def calculate_shortest_path(position, goal, walls, visited, moves_so_far):
+    global min_so_far
+
     # mark as visited
     visited[position["x"]][position["y"]] = 1
 
+    if len(moves_so_far) >= min_so_far:
+        return moves_so_far
     if position["x"] == goal["x"] and position["y"] == goal["y"]:
+        if len(moves_so_far) < min_so_far:
+            min_so_far = len(moves_so_far)
         return moves_so_far
 
     right_pos = {"x": position["x"] + 1, "y": position["y"]}
@@ -537,9 +548,11 @@ def calculate_shortest_path(position, goal, walls, visited, moves_so_far):
     temp_left = list(moves_so_far)
     temp_left.append("LEFT")
 
-    for i in range(0, 4):
-        # TODO!!!! NEED TO SOMEHOW CREATE 4 DEEP COPIES OF THIS 2D ARRAY!!!!!!!!
-        visited_temps[i] = [x[:] for x in visited]
+    visited_temps = [None, None, None, None]
+    for i in range(0,4):
+        visited_temps[i] = [None] * 9
+        for j in range(0,9):
+            visited_temps[i][j] = list(visited[j])
 
     long_array = [0] * (w * h + 1) # Guarranteed to have longer length than any possible path
     # Does 3 checks:
@@ -547,22 +560,22 @@ def calculate_shortest_path(position, goal, walls, visited, moves_so_far):
         # 2. there's not a wall blocking the way to neighbor
         # 3. the neighbor hasn't been visited yet
     if is_in_bounds(right_pos) and not wall_in_front(walls, position, "RIGHT") and not visited[right_pos["x"]][right_pos["y"]]:
-        moves_right = calculate_shortest_path(right_pos, goal, walls, visited[0], temp_right)
+        moves_right = calculate_shortest_path(right_pos, goal, walls, visited_temps[0], temp_right)
     else:
         moves_right = long_array
 
     if is_in_bounds(up_pos) and not wall_in_front(walls, position, "UP") and not visited[up_pos["x"]][up_pos["y"]]:
-        moves_up = calculate_shortest_path(up_pos, goal, walls, visited[1], temp_up)
+        moves_up = calculate_shortest_path(up_pos, goal, walls, visited, visited_temps[1])
     else:
         moves_up = long_array
 
     if is_in_bounds(down_pos) and not wall_in_front(walls, position, "DOWN") and not visited[down_pos["x"]][down_pos["y"]]:
-        moves_down = calculate_shortest_path(down_pos, goal, walls, visited[2], temp_down)
+        moves_down = calculate_shortest_path(down_pos, goal, walls, visited, visited_temps[2])
     else:
         moves_down = long_array
 
     if is_in_bounds(left_pos) and not wall_in_front(walls, position, "LEFT") and not visited[left_pos["x"]][left_pos["y"]]:
-        moves_left = calculate_shortest_path(left_pos, goal, walls, visited[3], temp_left)
+        moves_left = calculate_shortest_path(left_pos, goal, walls, visited, visited_temps[3])
     else:
         moves_left = long_array
 
@@ -928,6 +941,7 @@ lockdown_h_walls = []
 oppo_gap = None
 horizontal_phase = False
 goals = None
+min_so_far = 15
 
 # game loop
 while 1:
