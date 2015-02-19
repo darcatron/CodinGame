@@ -537,28 +537,32 @@ def calculate_shortest_path(position, goal, walls, visited, moves_so_far):
     temp_left = list(moves_so_far)
     temp_left.append("LEFT")
 
+    for i in range(0, 4):
+        # TODO!!!! NEED TO SOMEHOW CREATE 4 DEEP COPIES OF THIS 2D ARRAY!!!!!!!!
+        visited_temps[i] = [x[:] for x in visited]
+
     long_array = [0] * (w * h + 1) # Guarranteed to have longer length than any possible path
     # Does 3 checks:
         # 1. the neighbor is in bounds
         # 2. there's not a wall blocking the way to neighbor
         # 3. the neighbor hasn't been visited yet
     if is_in_bounds(right_pos) and not wall_in_front(walls, position, "RIGHT") and not visited[right_pos["x"]][right_pos["y"]]:
-        moves_right = calculate_shortest_path(right_pos, goal, walls, visited, temp_right)
+        moves_right = calculate_shortest_path(right_pos, goal, walls, visited[0], temp_right)
     else:
         moves_right = long_array
 
     if is_in_bounds(up_pos) and not wall_in_front(walls, position, "UP") and not visited[up_pos["x"]][up_pos["y"]]:
-        moves_up = calculate_shortest_path(up_pos, goal, walls, visited, temp_up)
+        moves_up = calculate_shortest_path(up_pos, goal, walls, visited[1], temp_up)
     else:
         moves_up = long_array
 
     if is_in_bounds(down_pos) and not wall_in_front(walls, position, "DOWN") and not visited[down_pos["x"]][down_pos["y"]]:
-        moves_down = calculate_shortest_path(down_pos, goal, walls, visited, temp_down)
+        moves_down = calculate_shortest_path(down_pos, goal, walls, visited[2], temp_down)
     else:
         moves_down = long_array
 
     if is_in_bounds(left_pos) and not wall_in_front(walls, position, "LEFT") and not visited[left_pos["x"]][left_pos["y"]]:
-        moves_left = calculate_shortest_path(left_pos, goal, walls, visited, temp_left)
+        moves_left = calculate_shortest_path(left_pos, goal, walls, visited[3], temp_left)
     else:
         moves_left = long_array
 
