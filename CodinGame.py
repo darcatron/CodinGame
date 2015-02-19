@@ -435,47 +435,19 @@ def best_path(players, player_id, walls):
     else:
         return gap_strategy(players, player_id, walls)
 
-# determines the direction of the gap based on the player's endzone.
-# Pre Condition: wall must be in front of position
-def direction_to_gap(walls, position, endzone):
-    pos_x, pos_y = None, None
-
-    # static starting positions for wall check (x pos for V walls, y pos for H walls)
-    if (endzone == "LEFT"):
-        pos_x = position['x']
-    elif (endzone == "RIGHT"):
-        pos_x = position['x'] + 1
-    elif (endzone == "DOWN"):
-        pos_y = position['y'] + 1
-
-    # based on endzone and cur pos, determine wall starting pos 
-    # (y pos for V walls, x pos for H walls)
-    if (endzone == "LEFT" or endzone == "RIGHT"):
-        if (wall_exists(pos_x, position['y'], 'V', walls)):
-            pos_y = position['y']
-        elif (wall_exists(pos_x, position['y'] - 1, 'V', walls)):
-            pos_y = position['y'] - 1
-
-        if (pos_y == None):
-            print >> sys.stderr, "Err: no wall in front of position in direction_to_gap"
-        elif (is_even(pos_y)):
-             # walls starts on even y pos -> gap is bottom (0 is even)
+# determines the direction of the gap based on a wall that is blocking the player's path.
+def direction_to_gap(walls, wall_in_path, position, heading):
+    if heading == "RIGHT" or heading == "LEFT":
+        if is_even(wall_in_path["wallY"]):
             return "DOWN"
         return "UP"
-    elif (endzone == "DOWN"):
-        if (wall_exists(position['x'], pos_y, 'H', walls)):
-            pos_x = position['x']
-        elif (wall_exists(position['x'] - 1, pos_y, 'H', walls)):
-            pos_x = position['x'] - 1 
-
-        if (pos_y == None):
-            print >> sys.stderr, "Err: no wall in front of position in direction_to_gap"
-        elif (is_even(pos_x)):
-            # if walls starts on even x pos -> gap is right (0 is even)
+    elif heading == "DOWN" or heading == "UP":
+        if is_even(wall_in_path["wallX"]):
             return "RIGHT"
         return "LEFT"
-    else:
-        print >> sys.stderr, "Err: Invalid endzone given to direction_to_gap"
+
+    print >> sys.stderr, "Bad heading in direction_to_gap"
+
 
 
 # UNTESTED
@@ -498,6 +470,8 @@ def gap_strategy(players, player_id, walls):
             if (endzone == "RIGHT"):
                 # get gap pretending wall is directly in fronts
                 # From Sean: TODO This is wrong. We need to base the gap off the wall that exists. Not off the wall at the coordinate in front of us
+                # Also dict elements can't be added with the "+" operator to lists like you tried to do with walls
+                # Should get to top of gap (a bunch of walls on top of each other) rather than just get to the top of this one wall
                 gap_direction = direction_to_gap(walls + {"wallX": players[player_id]['x'] + 1, "wallY": wall_ahead['y'], "wallO": 'V'}, players[player_id], endzone)
                 if (gap_direction == "UP"):
                     goals.append({'x': wall_ahead['wallX'], 'y': wall_ahead['wallY'] - 1})
