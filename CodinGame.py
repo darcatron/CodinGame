@@ -11,9 +11,6 @@
 #   5. We missed a check to is_valid_wall (http://www.codingame.com/replay/33628975)
 #   6. WHAT THE BALLS (http://www.codingame.com/replay/33630299) and (http://www.codingame.com/replay/33631635) seems like something wrong with vertical wall lockdwon function
 
-# TODO MATUSH comment your untested functions describing how they work (ex: build vertical and horizontal wall lockdown functions)
-
-
 # NOTES!
 # EVERYTHING IS PASSED BY REFERENCE!!!!!!
 # LOCKDOWN: force both of us into our forward and therefore his backward which puts us both in the same boat and go shortest path to win!
@@ -47,20 +44,8 @@ def two_players(players, walls, my_id):
         build_vertical_wall_lockdown(players, his_id, walls)
     elif one_away_from_gap(players, his_id, walls):
         # if oppo is one away from his gap, then H wall him
-        # TODO Untested
-        # This fixes following example issues:
-            # e.g. http://www.codingame.com/replay/33017521
-            # e.g http://www.codingame.com/replay/33020593
         in_lockdown = True
         lockdown(players, walls, my_id)
-        # option below caused conflicts when going into lockdown, so I replaced it with initiating lockdown
-        #if players[his_id]["y"] ==  1:
-            # gap is up
-            # build_horizontal_wall_lockdown(players, his_id, "UP", walls)
-
-        #elif players[his_id]["y"] == h - 2:
-            # gap is down
-            #build_horizontal_wall_lockdown(players, his_id, "DOWN", walls)
     else:
         move = best_path(players, my_id, walls)
 
@@ -79,9 +64,11 @@ def lockdown(players, walls, my_id):
     his_id = 1 if my_id == 0 else 0
     # force_direction = None  # Sean removed this in favor of using global oppo_gap... objections?
     moves_to_clear = moves_to_clear_wall(walls, players[his_id], "RIGHT" if his_id == 0 else "LEFT")
-
+    print >> sys.stderr, "moves_to_clear == ", moves_to_clear
     if locked:
-        pass # best_path()
+        if is_one_move_from_win(players, his_id, walls):
+            build_vertical_wall_lockdown(players, his_id, walls)
+        # else best_path()
     elif (horizontal_phase and should_lock(players, his_id, walls, myId)): # TODO we must be in the cage with him
         # call lock
         lock(players, walls, my_id)
@@ -89,13 +76,14 @@ def lockdown(players, walls, my_id):
     elif horizontal_phase:
         # check to see he is going to clear horiz wall with upgraded moves_to_clear
         if moves_to_clear_wall(walls, players[his_id], oppo_gap) == 1:
-            build_horizontal_wall_lockdown(players, his_id, oppo_gap, walls) # Sean called Matush's functon here, not sure if we built it
+            build_horizontal_wall_lockdown(players, his_id, oppo_gap, walls) # TODO Sean called Matush's functon here, not sure if we built it
                                                                            # it for this case... scary
         else:
             pass # best path()
     elif (moves_to_clear == 1):
          build_vertical_wall_lockdown(players, his_id, walls)
     elif (moves_to_clear == 2):
+        print >> sys.stderr, "moves_to_clear == 2"
         if (oppo_gap == "UP" and players[his_id]["y"] <= players[myId]["y"]): # oppo is equal or above us
             # build H wall above him
             build_horizontal_wall_lockdown(players, his_id, oppo_gap, walls)
@@ -107,6 +95,7 @@ def lockdown(players, walls, my_id):
             horizontal_phase = True
             return
 
+    print >> sys.stderr, "doing best path instead"
     print best_path(players, my_id, walls)
 
 
@@ -280,6 +269,7 @@ def wall_out_of_bounds(putX, putY, wallO, walls):
     else:
         print >> sys.stderr, "Err: wall_out_of_bounds got strange orientation"
 
+# checks if wall passed in will overlay or cross an existing wall
 def wall_crosses_or_overlays(putX, putY, wallO, walls):
     if wallO == "V":
         # wall crosses an existing horizontal wall 
@@ -319,7 +309,7 @@ def wall_in_front(walls, position, heading):
   ## path when trying to circumvent wall_in_front
 # Returns 1 if no wall in front
 def moves_to_clear_wall(walls, position, heading):
-    originalPos = dict(position)
+    temp_pos = dict(position)
 
     if heading == "LEFT" or heading == "RIGHT":
         direction = "y"
@@ -331,21 +321,25 @@ def moves_to_clear_wall(walls, position, heading):
     movesUpOrLeft = 1
     movesDownOrRight = 1
     #check num moves to clear by moving up
-    while wall_in_front(walls, originalPos, heading):
-        originalPos["y"] -= 1
-        if not is_in_bounds(originalPos):
+    while wall_in_front(walls, temp_pos, heading):
+        temp_pos[direction] -= 1
+        if not is_in_bounds(temp_pos):
             movesUpOrLeft = "inf"
             break
         movesUpOrLeft += 1
     
-    originalPos = dict(position)
+    temp_pos = dict(position)
     
     #check num moves to clear by moving down
-    while wall_in_front(walls, originalPos, heading):
-        originalPos["y"] += 1
-        if not is_in_bounds(originalPos):
-            return movesDownOrRight
+    while wall_in_front(walls, temp_pos, heading):
+        temp_pos[direction] += 1
+        if not is_in_bounds(temp_pos): # up or left will for sure be less
+            print >> sys.stderr, "in moves_to_clear_wall with heading ", heading, " movesUpOrLeft ", movesUpOrLeft, " movesDownOrRight ", movesDownOrRight
+            return movesUpOrLeft
         movesDownOrRight += 1
+
+    print >> sys.stderr, "in moves_to_clear_wall with heading ", heading, " movesUpOrLeft ", movesUpOrLeft, " movesDownOrRight ", movesDownOrRight
+
 
     return min(movesUpOrLeft, movesDownOrRight)
 
@@ -461,6 +455,7 @@ def gap_strategy(players, playerId, walls):
         # move forward towards endzone
         return endzone
 
+# determines the direction of the gap based on the player's endzone.
 # Pre Condition: wall must be in front of position
 def direction_to_gap(walls, position, endzone):
     pos_x, pos_y = None, None
@@ -502,11 +497,15 @@ def direction_to_gap(walls, position, endzone):
     else:
         print >> sys.stderr, "Err: Invalid endzone given to direction_to_gap"
 
+# builds a horizontal wall above or below the receiver depending on
+#  receiver's positon on the grid. The wall_pos is which side of the oppo
+#  the wall should be placed and is the same as oppo_gap
 def build_horizontal_wall_lockdown(players, receiver_id, wall_pos, walls):
     global lockdown_h_walls
 
     creator_id = 0 if receiver_id == 1 else 1
     endzone = find_endzone(receiver_id)
+    # where to build the wall
     pos_x = players[receiver_id]['x']
     pos_y = players[receiver_id]['y']
 
@@ -540,6 +539,9 @@ def build_horizontal_wall_lockdown(players, receiver_id, wall_pos, walls):
         print >> sys.stderr, "Err: build_horizontal_wall_lockdown was given nonexistent endzone"
 
 # TODO UNTESTED
+# builds a vertical wall above or below the receiver depending on
+#  receiver's positon on the grid. The oppo_gap is used to determine 
+#  which where the wall should be placed
 def build_vertical_wall_lockdown(players, receiver_id, walls):
     # build vertical wall in front of oppo making gap in our direction
     global oppo_gap 
@@ -675,7 +677,9 @@ def lock(players, walls, my_id):
 
 
 # TODO UNTESTED
-# See diagram for meaning of 2_3
+# Begins the 2 - 3 wall build strategy to lock in the oppo.
+#  Each call only builds whichever part of the wall is necessary
+# See diagram for illustration of wall postions 2 and 3
 # Existing wall coordinates are for the vertical wall 
 #  necessary to get into lock method 2,3
 def lock_2_3(existing_wall_x, existing_wall_y, walls, players, my_id):
@@ -725,6 +729,9 @@ def lock_2_3(existing_wall_x, existing_wall_y, walls, players, my_id):
 
 
 # TODO UNTESTED
+# Begins the 1 - 4 - maybe 6 wall build strategy to lock in the oppo.
+#  Each call only builds whichever part of the wall is necessary
+# See diagram for illustration of wall postions 1, 4, and 6
 def lock_1_4(players, walls, my_id):
     global locked
 
