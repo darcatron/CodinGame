@@ -433,12 +433,55 @@ def best_path(players, player_id, walls):
     else:
         return gap_strategy(players, player_id, walls)
 
+# determines the direction of the gap based on the player's endzone.
+# Pre Condition: wall must be in front of position
+def direction_to_gap(walls, position, endzone):
+    pos_x, pos_y = None, None
+
+    # static starting positions for wall check (x pos for V walls, y pos for H walls)
+    if (endzone == "LEFT"):
+        pos_x = position['x']
+    elif (endzone == "RIGHT"):
+        pos_x = position['x'] + 1
+    elif (endzone == "DOWN"):
+        pos_y = position['y'] + 1
+
+    # based on endzone and cur pos, determine wall starting pos 
+    # (y pos for V walls, x pos for H walls)
+    if (endzone == "LEFT" or endzone == "RIGHT"):
+        if (wall_exists(pos_x, position['y'], 'V', walls)):
+            pos_y = position['y']
+        elif (wall_exists(pos_x, position['y'] - 1, 'V', walls)):
+            pos_y = position['y'] - 1
+
+        if (pos_y == None):
+            print >> sys.stderr, "Err: no wall in front of position in direction_to_gap"
+        elif (is_even(pos_y)):
+             # walls starts on even y pos -> gap is bottom (0 is even)
+            return "DOWN"
+        return "UP"
+    elif (endzone == "DOWN"):
+        if (wall_exists(position['x'], pos_y, 'H', walls)):
+            pos_x = position['x']
+        elif (wall_exists(position['x'] - 1, pos_y, 'H', walls)):
+            pos_x = position['x'] - 1 
+
+        if (pos_y == None):
+            print >> sys.stderr, "Err: no wall in front of position in direction_to_gap"
+        elif (is_even(pos_x)):
+            # if walls starts on even x pos -> gap is right (0 is even)
+            return "RIGHT"
+        return "LEFT"
+    else:
+        print >> sys.stderr, "Err: Invalid endzone given to direction_to_gap"
+
 
 # Sean thinks it is possible that we might have to add is_possible_to_win before every return that hasn't been
 # checked yet (or at least most of them)
 def gap_strategy(players, player_id, walls):
     cur_goal = goals[-1]
     endzone = find_endzone(player_id)
+    gap_direction = direction_to_gap(walls, players[player_id], endzone)
 
     while (goal_complete(cur_goal) or not goal_possible(cur_goal)):
         goals.pop()
@@ -451,9 +494,15 @@ def gap_strategy(players, player_id, walls):
         if (wall_ahead):
             # must overcome the wall
             if (endzone == "RIGHT"):
-                goals.append({'x': wall_ahead['x'], 'y': wall_ahead['y'] - 1})
+                if (gap_direction == "UP"):
+                    goals.append({'x': wall_ahead['x'], 'y': wall_ahead['y'] - 1})
+                elif (gap_direction == "DOWN"):
+                    goals.append({'x': wall_ahead['x'], 'y': wall_ahead['y'] + 2})
             elif (endzone == "LEFT"):
-                goals.append({'x': wall_ahead['x'] - 1, 'y': wall_ahead['y'] - 1})
+                if (gap_direction == "UP"):
+                    goals.append({'x': wall_ahead['x'] - 1, 'y': wall_ahead['y'] - 1})
+                elif (gap_direction == "DOWN"):
+                    goals.append({'x': wall_ahead['x'] - 1, 'y': wall_ahead['y'] + 2})
 
     shorest_path() # TODO
 
@@ -527,8 +576,9 @@ def calculate_shortest_path(position, goal, walls, visited, moves_so_far):
     # mark as visited
     visited[position["x"]][position["y"]] = 1
 
-    if len(moves_so_far) >= min_so_far:
+    if len(moves_so_far) > min_so_far:
         return moves_so_far
+
     if position["x"] == goal["x"] and position["y"] == goal["y"]:
         if len(moves_so_far) < min_so_far:
             min_so_far = len(moves_so_far)
@@ -565,17 +615,17 @@ def calculate_shortest_path(position, goal, walls, visited, moves_so_far):
         moves_right = long_array
 
     if is_in_bounds(up_pos) and not wall_in_front(walls, position, "UP") and not visited[up_pos["x"]][up_pos["y"]]:
-        moves_up = calculate_shortest_path(up_pos, goal, walls, visited, visited_temps[1])
+        moves_up = calculate_shortest_path(up_pos, goal, walls, visited_temps[1], temp_up)
     else:
         moves_up = long_array
 
     if is_in_bounds(down_pos) and not wall_in_front(walls, position, "DOWN") and not visited[down_pos["x"]][down_pos["y"]]:
-        moves_down = calculate_shortest_path(down_pos, goal, walls, visited, visited_temps[2])
+        moves_down = calculate_shortest_path(down_pos, goal, walls, visited_temps[2], temp_down)
     else:
         moves_down = long_array
 
     if is_in_bounds(left_pos) and not wall_in_front(walls, position, "LEFT") and not visited[left_pos["x"]][left_pos["y"]]:
-        moves_left = calculate_shortest_path(left_pos, goal, walls, visited, visited_temps[3])
+        moves_left = calculate_shortest_path(left_pos, goal, walls, visited_temps[3], tempri)
     else:
         moves_left = long_array
 
@@ -598,47 +648,6 @@ def get_min_path(moves_right, moves_up, moves_down, moves_left, long_array):
     else:
         print >> sys.stderr, "Bad min_moves in get_min_path"
 
-# determines the direction of the gap based on the player's endzone.
-# Pre Condition: wall must be in front of position
-def direction_to_gap(walls, position, endzone):
-    pos_x, pos_y = None, None
-
-    # static starting positions for wall check (x pos for V walls, y pos for H walls)
-    if (endzone == "LEFT"):
-        pos_x = position['x']
-    elif (endzone == "RIGHT"):
-        pos_x = position['x'] + 1
-    elif (endzone == "DOWN"):
-        pos_y = position['y'] + 1
-
-    # based on endzone and cur pos, determine wall starting pos 
-    # (y pos for V walls, x pos for H walls)
-    if (endzone == "LEFT" or endzone == "RIGHT"):
-        if (wall_exists(pos_x, position['y'], 'V', walls)):
-            pos_y = position['y']
-        elif (wall_exists(pos_x, position['y'] - 1, 'V', walls)):
-            pos_y = position['y'] - 1
-
-        if (pos_y == None):
-            print >> sys.stderr, "Err: no wall in front of position in direction_to_gap"
-        elif (is_even(pos_y)):
-             # walls starts on even y pos -> gap is bottom (0 is even)
-            return "DOWN"
-        return "UP"
-    elif (endzone == "DOWN"):
-        if (wall_exists(position['x'], pos_y, 'H', walls)):
-            pos_x = position['x']
-        elif (wall_exists(position['x'] - 1, pos_y, 'H', walls)):
-            pos_x = position['x'] - 1 
-
-        if (pos_y == None):
-            print >> sys.stderr, "Err: no wall in front of position in direction_to_gap"
-        elif (is_even(pos_x)):
-            # if walls starts on even x pos -> gap is right (0 is even)
-            return "RIGHT"
-        return "LEFT"
-    else:
-        print >> sys.stderr, "Err: Invalid endzone given to direction_to_gap"
 
 # builds a horizontal wall above or below the receiver depending on
 #  receiver's positon on the grid. The wall_pos is which side of the oppo
