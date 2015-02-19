@@ -155,7 +155,7 @@ def is_in_bounds(position):
 
 # Only for two players, works for gap in last column before endzone ONLY
 # Tells us if they are going to clear the gap in two moves or not
-# TODO Untested
+# UNTESTED
 def one_away_from_gap(players, player_id, walls):
     endzone = find_endzone(player_id)
     player_x = players[player_id]["x"]
@@ -423,7 +423,7 @@ def win_path_exists(walls, position, endzone, order, visited):
 
     return False
 
-# TODO UNTESTED
+# UNTESTED
 # TODO fix http://www.codingame.com/replay/33033473 -- OH SHIT
 # http://www.codingame.com/replay/33628014
 def best_path(players, player_id, walls):
@@ -433,7 +433,7 @@ def best_path(players, player_id, walls):
     else:
         return gap_strategy(players, player_id, walls)
 
-# TODO
+
 # Sean thinks it is possible that we might have to add is_possible_to_win before every return that hasn't been
 # checked yet (or at least most of them)
 def gap_strategy(players, player_id, walls):
