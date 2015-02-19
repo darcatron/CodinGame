@@ -493,26 +493,28 @@ def gap_strategy(players, player_id, walls):
 
         if (wall_ahead):
             # must overcome the wall
+            temp_walls = (dict walls)
+            temp_walls.append(wall_ahead)
             if (endzone == "RIGHT"):
                 # get gap pretending wall is directly in fronts
                 # From Sean: TODO This is wrong. We need to base the gap off the wall that exists. Not off the wall at the coordinate in front of us
                 gap_direction = direction_to_gap(walls + {"wallX": players[player_id]['x'] + 1, "wallY": wall_ahead['y'], "wallO": 'V'}, players[player_id], endzone)
                 if (gap_direction == "UP"):
-                    goals.append({'x': wall_ahead['x'], 'y': wall_ahead['y'] - 1})
+                    goals.append({'x': wall_ahead['wallX'], 'y': wall_ahead['wallY'] - 1})
                 elif (gap_direction == "DOWN"):
-                    goals.append({'x': wall_ahead['x'], 'y': wall_ahead['y'] + 2})
+                    goals.append({'x': wall_ahead['wallX'], 'y': wall_ahead['wallY'] + 2})
             elif (endzone == "LEFT"):
                 # get gap pretending wall is directly in fronts
                 gap_direction = direction_to_gap(walls + {"wallX": players[player_id]['x'], "wallY": wall_ahead['y'], "wallO": 'V'}, players[player_id], endzone)
                 if (gap_direction == "UP"):
-                    goals.append({'x': wall_ahead['x'] - 1, 'y': wall_ahead['y'] - 1})
+                    goals.append({'x': wall_ahead['wallX'] - 1, 'y': wall_ahead['wallY'] - 1})
                 elif (gap_direction == "DOWN"):
-                    goals.append({'x': wall_ahead['x'] - 1, 'y': wall_ahead['y'] + 2})
+                    goals.append({'x': wall_ahead['wallX'] - 1, 'y': wall_ahead['wallY'] + 2})
 
-    # path = shortest_path(players[player_id], cur_goal, walls) # TODO
+    path = shortest_path(players[player_id], cur_goal, walls) # TODO
     # return path[0]
     # matush_path({'x': players[player_id]['x'], 'y': players[player_id]['y']}, cur_goal)
-    path = do_a_star_algo(players[player_id], cur_goal, walls)
+    # path = do_a_star_algo(players[player_id], cur_goal, walls)
     return path[0]
 
 # UNTESTED
@@ -542,15 +544,15 @@ def nearest_vertical_wall_in_row(start_pos, player_id, walls):
     while (pos_x < w and pos_x > 0):
         if (endzone == "RIGHT"):
             if (wall_exists(pos_x, pos_y, 'V', walls)):
-                return {'x': pos_x, 'y': pos_y}
+                return {'wallX': pos_x, 'wallY': pos_y, 'wallO': 'V'}
             elif (wall_exists(pos_x, pos_y - 1, 'V', walls)):
-                return {'x': pos_x, 'y': pos_y - 1}
+                return {'wallX': pos_x, 'wallY': pos_y - 1, "wallO": 'V'}
             pos_x += 1
         elif (endzone == "LEFT"):
             if (wall_exists(pos_x, pos_y, 'V', walls)):
-                return {'x': pos_x, 'y': pos_y}
+                return {'wallX': pos_x, 'wallY': pos_y, "wallO": 'V'}
             elif (wall_exists(pos_x, pos_y - 1, 'V', walls)):
-                return {'x': pos_x, 'y': pos_y - 1}
+                return {'wallX': pos_x, 'wallY': pos_y - 1, "wallO": 'V'}
             pos_x -= 1
 
     return False # no wall
