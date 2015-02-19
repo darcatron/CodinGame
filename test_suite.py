@@ -577,3 +577,21 @@ walls = [{'wallX': 2, 'wallY': 3, 'wallO': 'V'},
          {'wallX': 2, 'wallY': 5, 'wallO': 'V'}]
 build_horizontal_wall(players, me, "UP", walls)
 print "^should be 2 6 H^ for horizontal block UP (Test 4)"
+
+
+###    Tests for shortest_path()    ###
+#######################################
+position = {"x": 0, "y": 3}
+goal = {"x": 1, "y": 3}
+walls = []
+print shortest_path(position, goal, walls)
+print "^ Should just be RIGHT since goal is right next to player ^"
+
+goal = {"x": 8, "y": 3}
+print shortest_path(position, goal, walls)
+print "^ Should just be 8 RIGHTs ^"
+
+
+goal = {"x": 5, "y": 7}
+print shortest_path(position, goal, walls)
+print "^ Should print 5 RIGHTs then 4 DOWNs ^"

@@ -474,6 +474,93 @@ def goal_possible():
     pass
 
 
+def shortest_path(player_pos, goal, walls):
+
+    if player_pos["x"] == goal["x"] and player_pos["y"] == goal["y"]:
+        print >> sys.stderr, "We are at goal. Something bad was passed to shortest_path"
+        return False
+
+    # set visited array to all zeroes
+    visited = [[0 for x in range(9)] for y in range(9)]
+
+    # set moves to be empty
+    moves = []
+
+    long_array = [0] * (w * h + 1)
+
+
+    fewest_moves = calculate_shortest_path(player_pos, goal, walls, visited, moves)
+    return fewest_moves
+
+
+# Recursive function for shortest_path
+# Base case: at goal so return moves_so_far
+# Recursive case: not at goal, so try every direction that hasn't been visited and doesn't have a wall in it and is in bounds
+def calculate_shortest_path(position, goal, walls, visited, moves_so_far):
+    # mark as visited
+    visited[position["x"]][position["y"]] = 1
+
+    if position["x"] == goal["x"] and position["y"] == goal["y"]:
+        return moves_so_far
+
+    right_pos = {"x": position["x"] + 1, "y": position["y"]}
+    up_pos = {"x": position["x"], "y": position["y"] - 1}
+    down_pos = {"x": position["x"], "y": position["y"] + 1}
+    left_pos = {"x": position["x"] - 1, "y": position["y"]}
+
+    temp_right = list(moves_so_far)
+    temp_right.append("RIGHT")
+    temp_up = list(moves_so_far)
+    temp_up.append("UP")
+    temp_down = list(moves_so_far)
+    temp_down.append("DOWN")
+    temp_left = list(moves_so_far)
+    temp_left.append("LEFT")
+
+    long_array = [0] * (w * h + 1) # Guarranteed to have longer length than any possible path
+    # Does 3 checks:
+        # 1. the neighbor is in bounds
+        # 2. there's not a wall blocking the way to neighbor
+        # 3. the neighbor hasn't been visited yet
+    if is_in_bounds(right_pos) and not wall_in_front(walls, position, "RIGHT") and not visited[right_pos["x"]][right_pos["y"]]:
+        moves_right = calculate_shortest_path(right_pos, goal, walls, visited, temp_right)
+    else:
+        moves_right = long_array
+
+    if is_in_bounds(up_pos) and not wall_in_front(walls, position, "UP") and not visited[up_pos["x"]][up_pos["y"]]:
+        moves_up = calculate_shortest_path(up_pos, goal, walls, visited, temp_up)
+    else:
+        moves_up = long_array
+
+    if is_in_bounds(down_pos) and not wall_in_front(walls, position, "DOWN") and not visited[down_pos["x"]][down_pos["y"]]:
+        moves_down = calculate_shortest_path(down_pos, goal, walls, visited, temp_down)
+    else:
+        moves_down = long_array
+
+    if is_in_bounds(left_pos) and not wall_in_front(walls, position, "LEFT") and not visited[left_pos["x"]][left_pos["y"]]:
+        moves_left = calculate_shortest_path(left_pos, goal, walls, visited, temp_left)
+    else:
+        moves_left = long_array
+
+    return get_min_path(moves_right, moves_up, moves_down, moves_left, long_array)
+
+
+def get_min_path(moves_right, moves_up, moves_down, moves_left, long_array):
+    min_moves = min(len(moves_right), len(moves_up), len(moves_down), len(moves_left))
+    if min_moves == len(moves_right):
+        return moves_right #.insert(0, "RIGHT") # TODO (get rid of this if other thing works) prepend RIGHT to list of moves since you know that is the way to the shortest path from here
+    elif min_moves == len(moves_up):
+        return moves_up
+    elif min_moves == len(moves_down):
+        return moves_down
+    elif min_moves == len(moves_left):
+        return moves_left
+    elif min_moves == len(long_array):
+        # All of the neighbors failed
+        return long_array
+    else:
+        print >> sys.stderr, "Bad min_moves in get_min_path"
+
 # determines the direction of the gap based on the player's endzone.
 # Pre Condition: wall must be in front of position
 def direction_to_gap(walls, position, endzone):
