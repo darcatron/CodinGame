@@ -433,31 +433,46 @@ def best_path(players, player_id, walls):
     else:
         return gap_strategy(players, player_id, walls)
 
-# TODO UNTESTED
+# TODO
 # Sean thinks it is possible that we might have to add is_possible_to_win before every return that hasn't been
 # checked yet (or at least most of them)
 def gap_strategy(players, player_id, walls):
-    endzone = find_endzone(player_id)
+    cur_goal = goals[-1]
 
-    if wall_in_front(walls, players[player_id], endzone):
-        dir_to_move = direction_to_gap(walls, players[player_id], endzone)
+    while ()    
 
-        if (is_possible_to_win(players[player_id], player_id, walls, dir_to_move)): 
-            # moving towards gap is a good idea (aka is not a dead end) using restricted is_possible_to_win
-            if wall_in_front(walls, players[player_id], dir_to_move):
-                return find_opposite_endzone(player_id) # move backwards. This triggers lockdown
-            return dir_to_move
-        elif wall_in_front(walls, players[player_id], opposite_direction(dir_to_move)):
-            return find_opposite_endzone(player_id) # move backwards. This triggers lockdown
+    # endzone = find_endzone(player_id)
+
+    # if wall_in_front(walls, players[player_id], endzone):
+    #     dir_to_move = direction_to_gap(walls, players[player_id], endzone)
+
+    #     if (is_possible_to_win(players[player_id], player_id, walls, dir_to_move)): 
+    #         # moving towards gap is a good idea (aka is not a dead end) using restricted is_possible_to_win
+    #         if wall_in_front(walls, players[player_id], dir_to_move):
+    #             return find_opposite_endzone(player_id) # move backwards. This triggers lockdown
+    #         return dir_to_move
+    #     elif wall_in_front(walls, players[player_id], opposite_direction(dir_to_move)):
+    #         return find_opposite_endzone(player_id) # move backwards. This triggers lockdown
         
-        # otherwise go other direction
-        return opposite_direction(dir_to_move)
-    else:
-        # move forward towards endzone
-        if (is_possible_to_win(players[player_id], player_id, walls, endzone)):
-            return endzone
-        else:
-            print >> sys.stderr, "in gap_strategy, moving towards endzone does not allow for a win"
+    #     # otherwise go other direction
+    #     return opposite_direction(dir_to_move)
+    # else:
+    #     # move forward towards endzone
+    #     if (is_possible_to_win(players[player_id], player_id, walls, endzone)):
+    #         return endzone
+    #     else:
+    #         print >> sys.stderr, "in gap_strategy, moving towards endzone does not allow for a win"
+
+# TODO
+# checks if a coordinate goal is satisfied
+def goal_complete():
+    pass
+
+# TODO
+# checks if a coordinate goal is reachable and does not lead to a dead end
+def goal_possible():
+    pass
+
 
 # determines the direction of the gap based on the player's endzone.
 # Pre Condition: wall must be in front of position
@@ -801,7 +816,7 @@ locked, in_lockdown = False, False
 lockdown_h_walls = []
 oppo_gap = None
 horizontal_phase = False
-
+goals = None
 # game loop
 while 1:
     players = []
@@ -811,7 +826,12 @@ while 1:
         # y: y-coordinate of the player
         # wallsLeft: number of walls available for the player
         x, y, wallsLeft = [int(i) for i in raw_input().split()]
+        
         players.append({"x": x,"y": y, "wallsLeft" : wallsLeft})
+        
+        if (goals == None):
+            goals = [{'x': x, 'y': y}]
+
     wallCount = int(raw_input()) # number of walls on the board
     for i in xrange(wallCount):
         # wallX: x-coordinate of the wall
