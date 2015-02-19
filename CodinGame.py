@@ -478,8 +478,7 @@ def direction_to_gap(walls, position, endzone):
         print >> sys.stderr, "Err: Invalid endzone given to direction_to_gap"
 
 
-# Sean thinks it is possible that we might have to add is_possible_to_win before every return that hasn't been
-# checked yet (or at least most of them)
+# UNTESTED
 def gap_strategy(players, player_id, walls):
     cur_goal = goals[-1]
     endzone = find_endzone(player_id)
@@ -496,6 +495,7 @@ def gap_strategy(players, player_id, walls):
             # must overcome the wall
             if (endzone == "RIGHT"):
                 # get gap pretending wall is directly in fronts
+                # From Sean: TODO This is wrong. We need to base the gap off the wall that exists. Not off the wall at the coordinate in front of us
                 gap_direction = direction_to_gap(walls + {"wallX": players[player_id]['x'] + 1, "wallY": wall_ahead['y'], "wallO": 'V'}, players[player_id], endzone)
                 if (gap_direction == "UP"):
                     goals.append({'x': wall_ahead['x'], 'y': wall_ahead['y'] - 1})
@@ -509,8 +509,11 @@ def gap_strategy(players, player_id, walls):
                 elif (gap_direction == "DOWN"):
                     goals.append({'x': wall_ahead['x'] - 1, 'y': wall_ahead['y'] + 2})
 
-    shortest_path(players[player_id], cur_goal, walls) # TODO
+    # path = shortest_path(players[player_id], cur_goal, walls) # TODO
+    # return path[0]
     # matush_path({'x': players[player_id]['x'], 'y': players[player_id]['y']}, cur_goal)
+    path = do_a_star_algo(players[player_id], cur_goal, walls)
+    return path[0]
 
 # UNTESTED
 # checks if a coordinate goal is satisfied
@@ -522,17 +525,22 @@ def goal_complete(cur_pos, goal):
 
 # UNTESTED
 # checks if a coordinate goal is reachable and does not lead to a dead end
+ # TODO
 def goal_possible(pos, cur_goal, walls):
-    return shortest_path(pos, cur_goal, walls) # TODO
+    # if shortest_path(pos, cur_goal, walls) == False:
+    if do_a_star_algo(pos, cur_goal, walls) == False: 
+        return False
+    return True
 
 # UNTESTED
+
 def nearest_vertical_wall_in_row(start_pos, player_id, walls):
     # must account for moving left or moving right
     endzone = find_endzone(player_id)
     pos_x = start_pos['x']
     pos_y = start_pos['y']
 
-    while (pos_x <= 8 or pos_x >= 1):
+    while (pos_x < w and pos_x >= 1):
         if (endzone == "RIGHT"):
             pos_x += 1
             if (wall_exists(pos_x, pos_y, 'V', walls)):
@@ -549,7 +557,8 @@ def nearest_vertical_wall_in_row(start_pos, player_id, walls):
     return False # no wall
 
 
-############################################################################
+######################## Matush Shortest Path ##############################
+## ALL UNTESTED
 
 # Pre-condition: start must be ('x': , 'y': ) only dict
 def matush_path(start, goal, walls):
@@ -596,6 +605,7 @@ def reconstruct_path(goal, came_from):
 
 ############################################################################
 
+# UNTESTED
 def shortest_path(player_pos, goal, walls):
     global min_so_far
     
@@ -617,12 +627,16 @@ def shortest_path(player_pos, goal, walls):
 
 
     fewest_moves = calculate_shortest_path(player_pos, goal, walls, visited, moves, long_array)
-    print fewest_moves[0]
+    if fewest_moves == len(long_array):
+        return False
+    else:
+        return fewest_moves
 
 
 # Recursive function for shortest_path
 # Base case: at goal so return moves_so_far
 # Recursive case: not at goal, so try every direction that hasn't been visited and doesn't have a wall in it and is in bounds
+# UNTESTED
 def calculate_shortest_path(position, goal, walls, visited, moves_so_far, long_array):
     global min_so_far
 
@@ -686,6 +700,8 @@ def calculate_shortest_path(position, goal, walls, visited, moves_so_far, long_a
     return get_min_path(moves_right, moves_up, moves_down, moves_left, long_array)
 
 
+######################## Sean Shortest Path ##############################
+## ALL UNTESTED
 
 def distance_from(position, goal):
     return abs(goal["x"] - position["x"]) + abs(goal["y"] - position["y"])
@@ -703,11 +719,25 @@ def get_min_score_pos(position_set, scores):
     return min_score_pos
 
 
+def get_direction(from_pos, to_pos):
+    if to_pos["x"] == from_pos["x"] + 1:
+        return "RIGHT"
+    elif to_pos["x"] == from_pos["x"] - 1:
+        return "LEFT"
+    elif to_pos["y"] == from_pos["y"] + 1:
+        return "DOWN"
+    elif to_pos["y"] == from_pos["y"] - 1:
+        return "UP"
+    else:
+        print >> sys.stderr, "Weird positions in get_direction for A* algo"
+
 def reconstruct_path(came_from, current):
-    total_path = [current]
+    total_path = []
     while current in came_from:
-        current = came_from[current["x"]][current["y"]]
-        total_path.append(current)
+        from_pos = came_from[current["x"]][current["y"]]
+        direction = get_direction(from_pos, current)
+        total_path.append(direction)
+        current = from_pos
 
     return total_path
 
@@ -784,7 +814,7 @@ def get_min_path(moves_right, moves_up, moves_down, moves_left, long_array):
         return long_array
     else:
         print >> sys.stderr, "Bad min_moves in get_min_path"
-
+###########################################################################
 
 # builds a horizontal wall above or below the receiver depending on
 #  receiver's positon on the grid. The wall_pos is which side of the oppo
