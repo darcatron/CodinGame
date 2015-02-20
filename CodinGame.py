@@ -79,10 +79,20 @@ def lockdown(players, walls, my_id):
         lock(players, walls, my_id)
         return
     elif horizontal_phase:
-        # check to see he is going to clear horiz wall with upgraded moves_to_clear
-        if moves_to_clear_wall(walls, players[his_id], oppo_gap[his_pos["x"]]) == 1:
-            build_horizontal_wall_lockdown(players, his_id, oppo_gap[his_pos["x"]], walls)
-            return
+        if oppo_cur_heading_vert:
+            if oppo_cur_heading_vert[his_pos['x']] == oppo_gap[his_pos['x']]:
+                # going toward gap
+                # check to see he is going to clear gap with upgraded moves_to_clear
+                if moves_to_clear_wall(walls, players[his_id], oppo_gap[his_pos["x"]]) == 1:
+                    build_horizontal_wall_lockdown(players, his_id, oppo_gap[his_pos["x"]], walls)
+                    return
+                else:
+                    pass #best path
+            else:
+                # not going toward gap, v wall him
+                if moves_to_clear_wall(walls, players[his_id], find_endzone(his_id)) == 1:
+                    build_vertical_wall_lockdown(players, his_id, walls)
+
         else:
             pass # best path()
     elif (moves_to_clear == 1):
@@ -480,27 +490,8 @@ def gap_strategy(players, player_id, walls):
     if (wall_ahead):
         # must overcome the wall, so get gap direction
         gap_direction = direction_to_gap(walls, wall_ahead, goal_dir)
-        if (goal_dir == "RIGHT"):
-            # Should get to a real gap (a way through after a bunch of walls on top of each other) rather than just get to the top of this one wall
-            if (gap_direction == "UP"):
-                if {'x': wall_ahead['wallX'], 'y': wall_ahead['wallY'] - 1} in goals:
-                    pass
-                elif is_possible_to_win({"x": players[player_id]["x"], "y": players[player_id]["y"] - 1}, player_id, walls, "UP"):
-                    goals.append({'x': wall_ahead['wallX'], 'y': wall_ahead['wallY'] - 1}) # Go over wall
-                else:
-                    goals.append({'x': wall_ahead['wallX'], 'y': wall_ahead['wallY'] + 2}) # Go under wall
-            elif (gap_direction == "DOWN"):
-                if {'x': wall_ahead['wallX'], 'y': wall_ahead['wallY'] + 2} in goals:
-                    pass
-                elif is_possible_to_win({"x": players[player_id]["x"], "y": players[player_id]["y"] + 1}, player_id, walls, "DOWN"):
-                    goals.append({'x': wall_ahead['wallX'], 'y': wall_ahead['wallY'] + 2}) # Go under wall
-                else: 
-                    goals.append({'x': wall_ahead['wallX'], 'y': wall_ahead['wallY'] - 1}) # Go over wall
-        elif (goal_dir == "LEFT"):
-            if (gap_direction == "UP"):
-                goals.append({'x': wall_ahead['wallX'] - 1, 'y': wall_ahead['wallY'] - 1})
-            elif (gap_direction == "DOWN"):
-                goals.append({'x': wall_ahead['wallX'] - 1, 'y': wall_ahead['wallY'] + 2})
+        print >> sys.stderr, "dir to gap: ", gap_direction
+        create_new_goal(players, player_id, wall_ahead, walls, goal_dir, gap_direction, goals)
     else:
         #TODO no wall ahead to block goal, just move goal_dir, correct?
         pass
@@ -523,9 +514,53 @@ def gap_strategy(players, player_id, walls):
 
 # UNTESTED
 # No good for three players
-# def get_new_goal(walls, wall_ahead, old_goal_dir, gap_direction):
-#     if gap_direction == "UP":
-#         while wall_exists(
+def create_new_goal(players, player_id, wall_ahead, walls, old_goal_dir, gap_direction, goals):
+    if (old_goal_dir == "RIGHT"):
+        # Should get to a real gap (a way through after a bunch of walls on top of each other) rather than just get to the top of this one wall
+        wallY = wall_ahead["wallY"]
+        wallX = wall_ahead["wallX"]
+
+        print >> sys.stderr, "wall X and wall Y: ", wallX, wallY
+        if (gap_direction == "UP"):
+            # follow line of walls up
+            while wall_exists(wallX, wallY, 'V', walls):
+                if not wall_exists(wallX, wallY - 2, 'V', walls):
+                    break
+                wallY -= 2
+                print >> sys.stderr, "wally in while: ", wallY
+
+            wall_ahead_top = {"wallX": wallX, "wallY": wallY, "wallO": 'V'}
+            print >> sys.stderr, "wall ahead top: ", wall_ahead_top
+            wall_ahead_below = wall_ahead
+
+            if {'x': wall_ahead_top['wallX'], 'y': wall_ahead_top['wallY'] - 1} in goals:
+                pass
+            elif is_possible_to_win({"x": players[player_id]["x"], "y": players[player_id]["y"] - 1}, player_id, walls, "UP") or \
+                 (not wall_in_front(walls, players[player_id], "LEFT") and is_in_bounds({"x": players[player_id]["x"] - 1, "y": players[player_id]["y"]}) and is_possible_to_win({"x": players[player_id]["x"] - 1, "y": players[player_id]["y"]}, player_id, walls, "UP")):
+                goals.append({'x': wall_ahead_top['wallX'], 'y': wall_ahead_top['wallY'] - 1}) # Go over wall
+            else:
+                goals.append({'x': wall_ahead_below['wallX'], 'y': wall_ahead_below['wallY'] + 2}) # Go under wall
+        elif (gap_direction == "DOWN"):
+            while wall_exists(wallX, wallY, 'V', walls):
+                if not wall_exists(wallX, wallY + 2, 'V', walls):
+                    break
+                wallY += 2
+
+            wall_ahead_below = {"wallX": wallX, "wallY": wallY, "wallO": 'V'}
+            wall_ahead_top = wall_ahead
+
+
+            if {'x': wall_ahead['wallX'], 'y': wall_ahead['wallY'] + 2} in goals:
+                pass
+            elif is_possible_to_win({"x": players[player_id]["x"], "y": players[player_id]["y"] + 1}, player_id, walls, "DOWN"):
+                goals.append({'x': wall_ahead_below['wallX'], 'y': wall_ahead_below['wallY'] + 2}) # Go under wall
+            else: 
+                goals.append({'x': wall_ahead_top['wallX'], 'y': wall_ahead_top['wallY'] - 1}) # Go over wall
+    elif (old_goal_dir == "LEFT"):
+        if (gap_direction == "UP"):
+            goals.append({'x': wall_ahead['wallX'] - 1, 'y': wall_ahead['wallY'] - 1})
+        elif (gap_direction == "DOWN"):
+            goals.append({'x': wall_ahead['wallX'] - 1, 'y': wall_ahead['wallY'] + 2})
 
 
 
@@ -696,7 +731,7 @@ def build_horizontal_wall_lockdown(players, receiver_id, wall_pos, walls):
 #  which where the wall should be placed
 def build_vertical_wall_lockdown(players, receiver_id, walls):
     # build vertical wall in front of oppo making gap in our direction
-    global oppo_gap 
+    global oppo_gap, oppo_cur_heading_vert
     creator_id = 0 if receiver_id == 1 else 1
     endzone = find_endzone(receiver_id)
     his_pos = players[receiver_id]
@@ -704,17 +739,22 @@ def build_vertical_wall_lockdown(players, receiver_id, walls):
 
     if not oppo_gap: # determining where gap is for the first time
         oppo_gap = [None] * 9
+        oppo_cur_heading_vert = [None] * 9
         if endzone == "LEFT":
             for col in range(his_pos["x"], w):
                 oppo_gap[col] = direction_towards_player(players[creator_id], players[receiver_id])
+                oppo_cur_heading_vert[col] = oppo_gap[col]
         elif endzone == "RIGHT":
             for col in range(0, his_pos["x"] + 1):
                 oppo_gap[col] = direction_towards_player(players[creator_id], players[receiver_id])
+                oppo_cur_heading_vert[col] = oppo_gap[col]
     elif not oppo_gap[his_pos["x"]]: # determine gap for when he advances to next column
         if endzone == "LEFT":
             oppo_gap[his_pos["x"]] = opposite_direction(oppo_gap[his_pos["x"] + 1])
+            oppo_cur_heading_vert[his_pos['x']] = oppo_gap[his_pos['x']]
         elif endzone == "RIGHT":
             oppo_gap[his_pos["x"]] = opposite_direction(oppo_gap[his_pos["x"] - 1])
+            oppo_cur_heading_vert[his_pos['x']] = oppo_gap[his_pos['x']]
 
 
 
@@ -1042,6 +1082,7 @@ goals = None
 min_so_far = 10
 oppo_last_pos = None
 oppo_cur_heading = None
+oppo_cur_heading_vert = None
 
 # game loop
 while 1:
@@ -1071,6 +1112,12 @@ while 1:
             oppo_cur_heading = "LEFT"
         elif players[his_id]["x"] > oppo_last_pos["x"]:
             oppo_cur_heading = "RIGHT"
+
+    if oppo_cur_heading_vert:
+        if players[his_id]["y"] < oppo_last_pos["y"]:
+            oppo_cur_heading_vert[players[his_id]['x']] = "UP"
+        elif players[his_id]["y"] > oppo_last_pos["y"]:
+            oppo_cur_heading_vert[players[his_id]['x']] = "DOWN"
 
 
 
