@@ -37,7 +37,7 @@ def two_players(players, walls, my_id):
     his_id = 1 if my_id == 0 else 0
 
     if (about_to_win(players[my_id], walls, find_endzone(my_id))):
-        print "RIGHT"
+        print find_endzone(my_id)
     elif in_lockdown:
         lockdown(players, walls, my_id)
     # elif we are one move from win
@@ -66,7 +66,7 @@ def lockdown(players, walls, my_id):
     global locked, horizontal_phase
     print >> sys.stderr, "in lockdown!!!!!"
     his_id = 1 if my_id == 0 else 0
-    # force_direction = None  # Sean removed this in favor of using global oppo_gap... objections?
+    his_pos = players[his_id]
     moves_to_clear = moves_to_clear_wall(walls, players[his_id], "RIGHT" if his_id == 0 else "LEFT")
     print >> sys.stderr, "moves_to_clear is", moves_to_clear
     if locked:
@@ -80,9 +80,8 @@ def lockdown(players, walls, my_id):
         return
     elif horizontal_phase:
         # check to see he is going to clear horiz wall with upgraded moves_to_clear
-        if moves_to_clear_wall(walls, players[his_id], oppo_gap) == 1:
-            build_horizontal_wall_lockdown(players, his_id, oppo_gap, walls) # TODO Sean called Matush's functon here, not sure if we built it
-                                                                           # it for this case... scary
+        if moves_to_clear_wall(walls, players[his_id], oppo_gap[his_pos["x"]]) == 1:
+            build_horizontal_wall_lockdown(players, his_id, oppo_gap[his_pos["x"]], walls)
             return
         else:
             pass # best path()
@@ -90,15 +89,15 @@ def lockdown(players, walls, my_id):
          build_vertical_wall_lockdown(players, his_id, walls)
          return
     elif (moves_to_clear == 2):
-        print >> sys.stderr, "oppo gap is", oppo_gap
-        if (oppo_gap == "UP" and (players[his_id]["y"] <= players[myId]["y"] or players[his_id]['y'] == 1)): # oppo is equal or above us or about to clear gap
+        print >> sys.stderr, "oppo gap is", oppo_gap[his_pos["x"]]
+        if (oppo_gap[his_pos["x"]] == "UP" and (players[his_id]["y"] <= players[myId]["y"] or players[his_id]['y'] == 1)): # oppo is equal or above us or about to clear gap
             # build H wall above him
-            build_horizontal_wall_lockdown(players, his_id, oppo_gap, walls)
+            build_horizontal_wall_lockdown(players, his_id, oppo_gap[his_pos["x"]], walls)
             return
-        elif (oppo_gap == "DOWN" and (players[his_id]["y"] >= players[my_id]["y"] or players[his_id]['y'] == h - 2)): # oppo is equal or below us or about to clear gap
+        elif (oppo_gap[his_pos["x"]] == "DOWN" and (players[his_id]["y"] >= players[my_id]["y"] or players[his_id]['y'] == h - 2)): # oppo is equal or below us or about to clear gap
             # build H wall below him
             print >> sys.stderr, "building h wall"
-            build_horizontal_wall_lockdown(players, his_id, oppo_gap, walls)
+            build_horizontal_wall_lockdown(players, his_id, oppo_gap[his_pos["x"]], walls)
             print >> sys.stderr, "done building wall"
             return
 
@@ -109,27 +108,7 @@ def lockdown(players, walls, my_id):
 ################ 3 PLAYER STRATEGY #####################
 ########################################################
 def three_players(players, walls, my_id):
-    if my_id == 0:
-        first_player_of_three(players, walls)
-    elif my_id == 1:
-        second_player_of_three(players, walls)
-    else:
-        third_player_of_three(players, walls)
-
-#Strategy for three players if we move first
-def first_player_of_three(players, walls):
-    myId = 0
-    pass
-
-#Strategy for three players if we move second
-def second_player_of_three(players, walls):
-    myId = 1
-    pass
-
-#Strategy for three players if we move third
-def third_player_of_three(players, walls):
-    myId = 2
-    pass
+    print matush_path(players[my_id], goals[-1], walls)[-1]
 
 
 #######################################################
@@ -281,9 +260,9 @@ def wall_exists(putX, putY, wallO, walls):
 
 def wall_out_of_bounds(putX, putY, wallO, walls):
     if wallO == "V":
-        return (putX >= w) or (putY >= h - 1) or (putX == 0)
+        return (putX >= w) or (putY >= h - 1) or (putX <= 0) or (putY < 0)
     elif wallO == "H":
-        return (putX >= w - 1) or (putY >= h) or (putY == 0)
+        return (putX >= w - 1) or (putY >= h) or (putX < 0) or (putY <= 0)
     else:
         print >> sys.stderr, "Err: wall_out_of_bounds got strange orientation"
 
@@ -293,12 +272,14 @@ def wall_crosses_or_overlays(putX, putY, wallO, walls):
         # wall crosses an existing horizontal wall 
         # or wall would overlay part of existing vertical wall
         return {"wallX": putX - 1, "wallY": putY + 1, "wallO": "H"} in walls \
-                or {"wallX": putX, "wallY": putY + 1, "wallO": "V"} in walls
+                or {"wallX": putX, "wallY": putY + 1, "wallO": "V"} in walls \
+                or {"wallX": putX, "wallY": putY - 1, "wallO": "V"} in walls
     elif wallO == "H":
         # wall crosses an existing vertical wall 
         # or wall would overlay part of existing horizontal wall
         return {"wallX": putX + 1, "wallY": putY - 1, "wallO": "V"} in walls \
-                or {"wallX": putX + 1, "wallY": putY, "wallO": "H"} in walls
+                or {"wallX": putX + 1, "wallY": putY, "wallO": "H"} in walls \
+                or {"wallX": putX - 1, "wallY": putY, "wallO": "H"} in walls
     else:
         print >> sys.stderr, "Err: wall_crosses_or_overlays got strange orientation"
 
@@ -363,6 +344,9 @@ def moves_to_clear_wall(walls, position, heading):
 # Determines endzone based on playerId and sets order based on endzone to maximize efficiency based off Sean's guesses
 # gap_direction is None for standard call of this function, and is either "UP" or "DOWN" for restricted case
 def is_possible_to_win(position, playerId, walls, gap_direction=None):
+    if not is_in_bounds(position):
+        return False
+
     if playerId == 0:
         endzone = "RIGHT"
         order = ["RIGHT", "UP", "DOWN", "LEFT"]
@@ -473,7 +457,7 @@ def gap_strategy(players, player_id, walls):
     endzone = find_endzone(player_id)
     
 
-    while (goal_complete(players[player_id], cur_goal) or not goal_possible(players[player_id], cur_goal, walls)):
+    while (goal_complete(players[player_id], player_id, cur_goal) or not goal_possible(players[player_id], cur_goal, walls)):
         print >> sys.stderr, "boom"    
         goals.pop()
         cur_goal = goals[-1]
@@ -499,12 +483,20 @@ def gap_strategy(players, player_id, walls):
         if (goal_dir == "RIGHT"):
             # Should get to a real gap (a way through after a bunch of walls on top of each other) rather than just get to the top of this one wall
             if (gap_direction == "UP"):
-                goals.append({'x': wall_ahead['wallX'], 'y': wall_ahead['wallY'] - 1})
+                if {'x': wall_ahead['wallX'], 'y': wall_ahead['wallY'] - 1} in goals:
+                    pass
+                elif is_possible_to_win({"x": players[player_id]["x"], "y": players[player_id]["y"] - 1}, player_id, walls, "UP"):
+                    goals.append({'x': wall_ahead['wallX'], 'y': wall_ahead['wallY'] - 1}) # Go over wall
+                else:
+                    goals.append({'x': wall_ahead['wallX'], 'y': wall_ahead['wallY'] + 2}) # Go under wall
             elif (gap_direction == "DOWN"):
-                goals.append({'x': wall_ahead['wallX'], 'y': wall_ahead['wallY'] + 2})
+                if {'x': wall_ahead['wallX'], 'y': wall_ahead['wallY'] + 2} in goals:
+                    pass
+                elif is_possible_to_win({"x": players[player_id]["x"], "y": players[player_id]["y"] + 1}, player_id, walls, "DOWN"):
+                    goals.append({'x': wall_ahead['wallX'], 'y': wall_ahead['wallY'] + 2}) # Go under wall
+                else: 
+                    goals.append({'x': wall_ahead['wallX'], 'y': wall_ahead['wallY'] - 1}) # Go over wall
         elif (goal_dir == "LEFT"):
-            # get gap pretending wall is directly in fronts
-            gap_direction = direction_to_gap(walls, wall_ahead, players[player_id], goal_dir)
             if (gap_direction == "UP"):
                 goals.append({'x': wall_ahead['wallX'] - 1, 'y': wall_ahead['wallY'] - 1})
             elif (gap_direction == "DOWN"):
@@ -538,9 +530,13 @@ def gap_strategy(players, player_id, walls):
 
 
 # checks if a coordinate goal is satisfied
-def goal_complete(cur_pos, goal):
-    if (cur_pos['x'] == goal['x']): # TODO potential and cur_pos['y'] == goal['y']
-        return True
+def goal_complete(cur_pos, player_id, goal):
+    if player_id != 2:
+        if cur_pos['x'] == goal['x']: # TODO potential and cur_pos['y'] == goal['y']
+            return True
+    else:
+        if cur_pos['y'] == goal['y']:
+            return True
 
     return False
 
@@ -630,124 +626,6 @@ def reconstruct_path_matush(start, goal, came_from):
     return path
 
 
-############################################################################
-
-# UNTESTED
-def shortest_path(player_pos, goal, walls):
-    global min_so_far
-    
-    # reset min_so_far to 15
-    min_so_far = 15
-
-
-    if player_pos["x"] == goal["x"] and player_pos["y"] == goal["y"]:
-        print >> sys.stderr, "We are at goal. Something bad was passed to shortest_path"
-        return False
-
-    # set visited array to all zeroes
-    visited = [[0 for x in range(9)] for y in range(9)]
-
-    # set moves to be empty
-    moves = []
-
-    long_array = [0] * (w * h + 1) # Guaranteed to have longer length than any possible path
-
-
-    fewest_moves = calculate_shortest_path(player_pos, goal, walls, visited, moves, long_array)
-
-    if fewest_moves == len(long_array):
-        print >> sys.stderr, "shortest path about to return false"
-        return False
-    else:
-        return fewest_moves
-
-
-# Recursive function for shortest_path
-# Base case: at goal so return moves_so_far
-# Recursive case: not at goal, so try every direction that hasn't been visited and doesn't have a wall in it and is in bounds
-# UNTESTED
-def calculate_shortest_path(position, goal, walls, visited, moves_so_far, long_array):
-    global min_so_far
-
-    # mark as visited
-    visited[position["x"]][position["y"]] = 1
-
-    if len(moves_so_far) > min_so_far:
-        return moves_so_far
-
-    if position["x"] == goal["x"] and position["y"] == goal["y"]:
-        if len(moves_so_far) < min_so_far:
-            min_so_far = len(moves_so_far)
-        return moves_so_far
-
-    right_pos = {"x": position["x"] + 1, "y": position["y"]}
-    up_pos = {"x": position["x"], "y": position["y"] - 1}
-    down_pos = {"x": position["x"], "y": position["y"] + 1}
-    left_pos = {"x": position["x"] - 1, "y": position["y"]}
-
-    temp_right = list(moves_so_far)
-    temp_right.append("RIGHT")
-    temp_up = list(moves_so_far)
-    temp_up.append("UP")
-    temp_down = list(moves_so_far)
-    temp_down.append("DOWN")
-    temp_left = list(moves_so_far)
-    temp_left.append("LEFT")
-
-    visited_temps = [None, None, None, None]
-
-    for i in range(0,4):
-        visited_temps[i] = [None] * 9
-        for j in range(0,9):
-            visited_temps[i][j] = list(visited[j])
-
-
-    # Does 3 checks:
-        # 1. the neighbor is in bounds
-        # 2. there's not a wall blocking the way to neighbor
-        # 3. the neighbor hasn't been visited yet
-    if is_in_bounds(right_pos) and not wall_in_front(walls, position, "RIGHT") and not visited[right_pos["x"]][right_pos["y"]]:
-        moves_right = calculate_shortest_path(right_pos, goal, walls, visited_temps[0], temp_right, long_array)
-    else:
-        moves_right = long_array
-
-    if is_in_bounds(up_pos) and not wall_in_front(walls, position, "UP") and not visited[up_pos["x"]][up_pos["y"]]:
-        moves_up = calculate_shortest_path(up_pos, goal, walls, visited_temps[1], temp_up, long_array)
-    else:
-        moves_up = long_array
-
-    if is_in_bounds(down_pos) and not wall_in_front(walls, position, "DOWN") and not visited[down_pos["x"]][down_pos["y"]]:
-        moves_down = calculate_shortest_path(down_pos, goal, walls, visited_temps[2], temp_down, long_array)
-    else:
-        moves_down = long_array
-
-    if is_in_bounds(left_pos) and not wall_in_front(walls, position, "LEFT") and not visited[left_pos["x"]][left_pos["y"]]:
-        moves_left = calculate_shortest_path(left_pos, goal, walls, visited_temps[3], temp_left, long_array)
-    else:
-        moves_left = long_array
-
-    return get_min_path(moves_right, moves_up, moves_down, moves_left, long_array)
-
-
-######################## Sean Shortest Path ##############################
-## ALL UNTESTED
-
-def distance_from(position, goal):
-    return abs(goal["x"] - position["x"]) + abs(goal["y"] - position["y"])
-
-# Goes through position set and finds the position that has the lowest score by indexing
-# into the scores array
-def get_min_score_pos(position_set, scores):
-    min_score_pos = position_set[0]
-    min_score = scores[min_score_pos["x"]][min_score_pos["y"]]
-    for pos in position_set:
-        if scores[pos["x"]][pos["y"]] <= min_score:
-            min_score = scores[pos["x"]][pos["y"]]
-            min_score_pos = pos
-
-    return min_score_pos
-
-
 def get_direction(from_pos, to_pos):
     if to_pos["x"] == from_pos["x"] + 1:
         return "RIGHT"
@@ -758,102 +636,16 @@ def get_direction(from_pos, to_pos):
     elif to_pos["y"] == from_pos["y"] - 1:
         return "UP"
     else:
-        print >> sys.stderr, "Weird positions in get_direction for A* algo"
+        print >> sys.stderr, "Weird positions in get_direction"
 
-def reconstruct_path(came_from, current):
-    print >> sys.stderr, "came from: ", came_from
-    print >> sys.stderr, "current: ", current
-    total_path = []
-    while current in came_from:
-        print >> sys.stderr, "Current is: ", current
-        from_pos = came_from[current["x"]][current["y"]]
-        direction = get_direction(from_pos, current)
-        total_path.append(direction)
-        current = from_pos
+#############################################################################
 
-    return total_path
-
-
-
-# should return a list of positions which is a path to the goal from the start
-# will NOT return in terms of RIGHT, UP, DOWN, and LEFT
-# TODO doesn't take into account walls yet
-# TODO don't let player go through endzone to get to goal?
-def do_a_star_algo(position, goal, walls):
-    open_set = [dict(position)] # initial node to be evaluated is only start position
-    closed_set = []
-    came_from = [[None for x in range(9)] for y in range(9)] # initialize empty for all cells in grid
-    g_score = [["inf" for x in range(9)] for y in range(9)] # all g_scores are infinity to start
-    g_score[position["x"]][position["y"]] = 0 # initialize g_score of start to 0
-    f_score = [["inf" for x in range(9)] for y in range(9)] # all f_scores are infinity to start
-    f_score[position["x"]][position["y"]] = distance_from(position, goal) # initialize f_score of start to the number of moves to goal without taking into account walls 
-
-    # while there are nodes left to evaluate
-    while open_set != []:
-        # current node is the one in the open set with lowest f_score value
-        current = get_min_score_pos(open_set, f_score)
-        print >> sys.stderr, "in pos: ", current
-
-        # If we reached goal
-        if current["x"] == goal["x"] and current["y"] == goal["y"]:
-            # reconstruct the path using came_from and return it
-            return reconstruct_path(came_from, current)
-
-        # Add it to closed set and remove current from open_set
-        closed_set.append(current)
-        open_set.remove(current)
-
-        # Get neighbors
-        right_pos = {"x": current["x"] + 1, "y": current["y"]}
-        up_pos = {"x": current["x"], "y": current["y"] - 1}
-        down_pos = {"x": current["x"], "y": current["y"] + 1}
-        left_pos = {"x": current["x"] - 1, "y": current["y"]}
-        neighbors = [right_pos, up_pos, down_pos, left_pos]
-
-        for neighbor in neighbors:
-            # if neighbor is not in closed set
-            if not (neighbor in closed_set):
-                # tentative_g_score = g_score of current node + 1
-                tentative_g_score = g_score[current["x"]][current["y"]] + 1
-
-                # if neighbor not in open_set or tentative_g_score < g_score[neighborX][neighborY]
-                if (not (neighbor in open_set)) or (tentative_g_score < g_score[neighbor["x"]][neighbor["y"]]):
-                    # came_from[neighborX][neighborY] = current node (something like: {'x': 4, 'y': 4})
-                    came_from[neighbor["x"]][neighbor["y"]] = current # TODO May have to make a copy of current here
-                    g_score[neighbor["x"]][neighbor["y"]] = tentative_g_score
-                    f_score[neighbor["x"]][neighbor["y"]] = g_score[neighbor["x"]][neighbor["y"]] + distance_from(neighbor, goal)
-                    # if neighbor not in open_set
-                    if not (neighbor in open_set):
-                        # add neighbor to open_set
-                        open_set.append(neighbor)
-
-    # No path found
-    return False
-
-
-
-def get_min_path(moves_right, moves_up, moves_down, moves_left, long_array):
-    min_moves = min(len(moves_right), len(moves_up), len(moves_down), len(moves_left))
-    if min_moves == len(moves_right):
-        return moves_right #.insert(0, "RIGHT") # TODO (get rid of this if other thing works) prepend RIGHT to list of moves since you know that is the way to the shortest path from here
-    elif min_moves == len(moves_up):
-        return moves_up
-    elif min_moves == len(moves_down):
-        return moves_down
-    elif min_moves == len(moves_left):
-        return moves_left
-    elif min_moves == len(long_array):
-        # All of the neighbors failed
-        return long_array
-    else:
-        print >> sys.stderr, "Bad min_moves in get_min_path"
-###########################################################################
 
 # builds a horizontal wall above or below the receiver depending on
 #  receiver's positon on the grid. The wall_pos is which side of the oppo
 #  the wall should be placed and is the same as oppo_gap
 def build_horizontal_wall_lockdown(players, receiver_id, wall_pos, walls):
-    global lockdown_h_walls
+    global horizontal_phase, lockdown_h_walls
 
     creator_id = 0 if receiver_id == 1 else 1
     endzone = find_endzone(receiver_id)
@@ -907,14 +699,28 @@ def build_vertical_wall_lockdown(players, receiver_id, walls):
     global oppo_gap 
     creator_id = 0 if receiver_id == 1 else 1
     endzone = find_endzone(receiver_id)
+    his_pos = players[receiver_id]
 
-    if (not oppo_gap): # determining where gap is for the first and only time
-        oppo_gap = direction_towards_player(players[creator_id], players[receiver_id])
+    if not oppo_gap: # determining where gap is for the first time
+        oppo_gap = [None] * 9
+        if endzone == "LEFT":
+            for col in range(his_pos["x"], w):
+                oppo_gap[col] = direction_towards_player(players[creator_id], players[receiver_id])
+        elif endzone == "RIGHT":
+            for col in range(0, his_pos["x"] + 1):
+                oppo_gap[col] = direction_towards_player(players[creator_id], players[receiver_id])
+    elif not oppo_gap[his_pos["x"]]: # determine gap for when he advances to next column
+        if endzone == "LEFT":
+            oppo_gap[his_pos["x"]] = opposite_direction(oppo_gap[his_pos["x"] + 1])
+        elif endzone == "RIGHT":
+            oppo_gap[his_pos["x"]] = opposite_direction(oppo_gap[his_pos["x"] - 1])
 
-    if (oppo_gap == "DOWN"):
+
+
+    if (oppo_gap[his_pos["x"]] == "DOWN"):
         # gap bottom -> build greatest even that is less than or equal to receiver
         check = is_even
-    elif (oppo_gap == "UP"):
+    elif (oppo_gap[his_pos["x"]] == "UP"):
         # gap top -> build greatest odd that is less than or equal to receiver 
         check = is_odd
     else:
@@ -1228,10 +1034,11 @@ while 1:
         walls.append({"wallX" : wallX, "wallY" : wallY, "wallO" : wallOrientation})
 
         
-    if playerCount == 2:
-        two_players(players, walls, myId)
-    else:
+    if myId == 2:
+        print >> sys.stderr, "INIT Goal: ", goals[0]
         three_players(players, walls, myId)
+    else:
+        two_players(players, walls, myId)
         
     # action: LEFT, RIGHT, UP, DOWN or "putX putY putOrientation" to place a wall    
     # Write an action using print
