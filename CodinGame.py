@@ -94,14 +94,12 @@ def lockdown(players, walls, my_id):
         if (oppo_gap == "UP" and (players[his_id]["y"] <= players[myId]["y"] or players[his_id]['y'] == 1)): # oppo is equal or above us or about to clear gap
             # build H wall above him
             build_horizontal_wall_lockdown(players, his_id, oppo_gap, walls)
-            horizontal_phase = True
             return
         elif (oppo_gap == "DOWN" and (players[his_id]["y"] >= players[my_id]["y"] or players[his_id]['y'] == h - 2)): # oppo is equal or below us or about to clear gap
             # build H wall below him
             print >> sys.stderr, "building h wall"
             build_horizontal_wall_lockdown(players, his_id, oppo_gap, walls)
             print >> sys.stderr, "done building wall"
-            horizontal_phase = True
             return
 
     print best_path(players, my_id, walls)
@@ -866,29 +864,37 @@ def build_horizontal_wall_lockdown(players, receiver_id, wall_pos, walls):
     if (endzone == "LEFT"):
         if (wall_pos == "UP"):
             if (is_valid_wall(players, creator_id, walls, pos_x, pos_y, 'H')):
+                horizontal_phase = True
                 print pos_x, pos_y, 'H'
                 lockdown_h_walls.append({"wallX": pos_x, "wallY": pos_y}) 
             else:
-                print >> sys.stderr, "Err: invalid wall -- aka ohhhh shitttt, we got some casses to add in build horizontal wall"
+                print >> sys.stderr, "Err: invalid wall -- aka ohhhh shitttt, we got some casses to add in build horizontal wall, but doing best path instead"
+                print best_path(players, creator_id, walls)
         elif (wall_pos == "DOWN"):
             if (is_valid_wall(players, creator_id, walls, pos_x, pos_y + 1, 'H')):
+                horizontal_phase = True
                 print pos_x, pos_y + 1, 'H'
                 lockdown_h_walls.append({"wallX": pos_x, "wallY": pos_y + 1})
             else:
-                print >> sys.stderr, "Err: invalid wall -- aka ohhhh shitttt, we got some casses to add in build horizontal wall"
+                print >> sys.stderr, "Err: invalid wall -- aka ohhhh shitttt, we got some casses to add in build horizontal wall, but doing best path instead"
+                print best_path(players, creator_id, walls)
     elif (endzone == "RIGHT"):
         if (wall_pos == "UP"):
             if (is_valid_wall(players, creator_id, walls, pos_x - 1, pos_y, 'H')):
+                horizontal_phase = True
                 print pos_x - 1, pos_y, 'H'
                 lockdown_h_walls.append({"wallX": pos_x - 1, "wallY": pos_y})
             else:
-                print >> sys.stderr, "Err: invalid wall -- aka ohhhh shitttt, we got some casses to add in build horizontal wall"
+                print >> sys.stderr, "Err: invalid wall -- aka ohhhh shitttt, we got some casses to add in build horizontal wall, but doing best path instead"
+                print best_path(players, creator_id, walls)
         elif (wall_pos == "DOWN"):
             if (is_valid_wall(players, creator_id, walls, pos_x - 1, pos_y + 1, 'H')):
+                horizontal_phase = True
                 print pos_x - 1, pos_y + 1, 'H'
                 lockdown_h_walls.append({"wallX": pos_x - 1, "wallY": pos_y + 1})
             else:
-                print >> sys.stderr, "Err: invalid wall -- aka ohhhh shitttt, we got some casses to add in build horizontal wall"
+                print >> sys.stderr, "Err: invalid wall -- aka ohhhh shitttt, we got some casses to add in build horizontal wall, but doing best path instead"
+                print best_path(players, creator_id, walls)
     else:
         print >> sys.stderr, "Err: build_horizontal_wall_lockdown was given nonexistent endzone"
 
@@ -919,23 +925,27 @@ def build_vertical_wall_lockdown(players, receiver_id, walls):
             if (is_valid_wall(players, creator_id, walls, players[receiver_id]['x'], players[receiver_id]['y'], 'V')):
                 print players[receiver_id]['x'], players[receiver_id]['y'], 'V'
             else:
-                print >> sys.stderr, "Err: not a valid V wall in build V wall lockdown endzone == LEFT and check == True"
+                print >> sys.stderr, "Err: not a valid V wall in build V wall lockdown endzone == LEFT and check == True, but doing best_path instead"
+                print best_path(players, creator_id, walls)
         else: # odd y pos
             if (is_valid_wall(players, creator_id, walls, players[receiver_id]['x'], players[receiver_id]['y'] - 1, 'V')):
                 print players[receiver_id]['x'], players[receiver_id]['y'] - 1, 'V'
             else:
-                print >> sys.stderr, "Err: not a valid V wall in build V wall lockdown endzone == LEFT and check == False"
+                print >> sys.stderr, "Err: not a valid V wall in build V wall lockdown endzone == LEFT and check == False, but doing best_path instead"
+                print best_path(players, creator_id, walls)
     elif (endzone == "RIGHT"):
         if (check(players[receiver_id]['y'])):
             if (is_valid_wall(players, creator_id, walls, players[receiver_id]['x'] + 1, players[receiver_id]['y'], 'V')):
                 print players[receiver_id]['x'] + 1, players[receiver_id]['y'], 'V'
             else:
-                print >> sys.stderr, "Err: not a valid V wall in build V wall lockdown endzone == RIGHT and check == True"
+                print >> sys.stderr, "Err: not a valid V wall in build V wall lockdown endzone == RIGHT and check == True, but doing best_path instead"
+                print best_path(players, creator_id, walls)
         else: # odd y pos
             if (is_valid_wall(players, creator_id, walls, players[receiver_id]['x'] + 1, players[receiver_id]['y'] - 1, 'V')):
                 print players[receiver_id]['x'] + 1, players[receiver_id]['y'] - 1, 'V'
             else:
-                print >> sys.stderr, "Err: not a valid V wall in build V wall lockdown endzone == RIGHT and check == False"
+                print >> sys.stderr, "Err: not a valid V wall in build V wall lockdown endzone == RIGHT and check == False, but doing best_path instead"
+                print best_path(players, creator_id, walls)
     else:  
         print >> sys.stderr, "build_vertical_wall_lockdown got an endzone that has not yet been implemented"
 
@@ -1009,7 +1019,8 @@ def lock(players, walls, my_id):
             print last_h_wall["wallX"] + 2, last_h_wall["wallY"], 'H'
             locked = True
         else:
-            print >> sys.stderr, "Err: Invalid H wall in lock num_away == 4"
+            print >> sys.stderr, "Err: Invalid H wall in lock num_away == 4, but doing best_path instead"
+            print best_path(players, my_id, walls)
     elif num_away == 3:
         if (his_pos == "UP"): # above line
             pos_y_quick_lock = last_h_wall["wallY"] - 2
@@ -1035,6 +1046,9 @@ def lock(players, walls, my_id):
             if (is_valid_wall(players, my_id, walls, last_h_wall["wallX"] + 2, last_h_wall["wallY"], 'H')):
                 print last_h_wall["wallX"] + 2, last_h_wall["wallY"], 'H'
                 locked = True
+            else:
+                "Err: invalid H wall in num_away == 3, but doing best_path instead"
+                print best_path(players, my_id, walls)
         elif (wall_exists(pos_x, pos_y, 'V', walls)):
             lock_2_3(pos_x, pos_y, walls, players, my_id)
         else:
@@ -1086,14 +1100,16 @@ def lock_2_3(existing_wall_x, existing_wall_y, walls, players, my_id):
             print pos_x_3, pos_y_3, 'H'
             locked = True
         else:
-            print >> sys.stderr, "Err: Invalid wall 3 in lock_2_3" 
+            print >> sys.stderr, "Err: Invalid wall 3 in lock_2_3, but doing best_path instead"
+            print best_path(players, my_id, walls) 
 
     else:
         # build 2
         if (is_valid_wall(pos_x_2, pos_y_2, 'V', walls)):
             print pos_x_2, pos_y_2, 'V'
         else:
-            print >> sys.stderr, "Err: Invalid wall 2 in lock_2_3" 
+            print >> sys.stderr, "Err: Invalid wall 2 in lock_2_3, but doing best_path instead"
+            print best_path(players, my_id, walls)  
 
 
 # UNTESTED
@@ -1140,7 +1156,8 @@ def lock_1_4(players, walls, my_id):
                 print pos_x_6, pos_y_6, 'V'
                 locked = True
             else:
-                print >> sys.stderr, "Err: Invalid wall 6 in lock_1_4"
+                print >> sys.stderr, "Err: Invalid wall 6 in lock_1_4, but doing best_path instead"
+                print best_path(players, my_id, walls) 
         else:
             # else build 4
             if (is_valid_wall(players, my_id, walls, pos_x_4, pos_y_4, 'H')):
@@ -1149,7 +1166,8 @@ def lock_1_4(players, walls, my_id):
                 if (wall_exists(pos_x_6, pos_y_6, 'V', walls)):
                     locked = True
             else:
-                print >> sys.stderr, "Err: Invalid wall 4 in lock_1_4"
+                print >> sys.stderr, "Err: Invalid wall 4 in lock_1_4, but doing best_path instead"
+                print best_path(players, my_id, walls) 
     else:
         # else build 1
         if is_valid_wall(players, my_id, walls, pos_x_1, pos_y_1, 'V'):
@@ -1159,9 +1177,11 @@ def lock_1_4(players, walls, my_id):
                 print pos_x_quick_lock, pos_y_quick_lock, 'V'
                 locked = True
             else:
-                print >> sys.stderr, "Err: Invalid wall quick_lock in lock_1_4"   
+                print >> sys.stderr, "Err: Invalid wall quick_lock in lock_1_4, but doing best_path instead"
+                print best_path(players, my_id, walls)    
         else:
-             print >> sys.stderr, "Err: Invalid wall 1 in lock_1_4"
+             print >> sys.stderr, "Err: Invalid wall 1 in lock_1_4, but doing best_path instead"
+             print best_path(players, my_id, walls) 
 
 
 # w: width of the board
