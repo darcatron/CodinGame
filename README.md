@@ -2,4 +2,4 @@
 
 ##Our beaut strategy for dominating this competition.
 
-####Final Rank: 460 / 740
+####Final Rank: 460 / 1153
