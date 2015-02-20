@@ -701,6 +701,7 @@ def build_vertical_wall_lockdown(players, receiver_id, walls):
     endzone = find_endzone(receiver_id)
     his_pos = players[receiver_id]
 
+
     if not oppo_gap: # determining where gap is for the first time
         oppo_gap = [None] * 9
         if endzone == "LEFT":
@@ -727,27 +728,65 @@ def build_vertical_wall_lockdown(players, receiver_id, walls):
         print >> sys.stderr, "build_vertical_wall_lockdown got a gap that has not yet been implemented"
 
     if (endzone == "LEFT"):
+        print >> sys.stderr, "in endzone left"
         if (check(players[receiver_id]['y'])):
-            if (is_valid_wall(players, creator_id, walls, players[receiver_id]['x'], players[receiver_id]['y'], 'V')):
+
+            print >> sys.stderr, "in first check"
+            left_wall = {"wallX": players[receiver_id]['x'], "wallY": players[receiver_id]['y'], "wallO": 'V'}
+            if oppo_cur_heading == "RIGHT": # he moved backwards, so wall behind him
+
+                print >> sys.stderr, "he moved back in first check"
+                if is_valid_wall(players, creator_id, walls, left_wall["wallX"] + 1, left_wall["wallY"], left_wall["wallO"]):
+                    print left_wall["wallX"] + 1, left_wall["wallY"], left_wall["wallO"]
+                else:
+                    print best_path(players, creator_id, walls)
+
+            elif (is_valid_wall(players, creator_id, walls, players[receiver_id]['x'], players[receiver_id]['y'], 'V')):
                 print players[receiver_id]['x'], players[receiver_id]['y'], 'V'
             else:
                 print >> sys.stderr, "Err: not a valid V wall in build V wall lockdown endzone == LEFT and check == True, but doing best_path instead"
                 print best_path(players, creator_id, walls)
+
         else: # odd y pos
-            if (is_valid_wall(players, creator_id, walls, players[receiver_id]['x'], players[receiver_id]['y'] - 1, 'V')):
+            print >> sys.stderr, "in second check"
+            left_wall = {"wallX": players[receiver_id]['x'], "wallY": players[receiver_id]['y'] - 1, "wallO": 'V'}
+            print >> sys.stderr, "last pos: ", oppo_last_pos["x"], " and cur_pos: ", his_pos["x"]
+
+            if oppo_cur_heading == "RIGHT": # he moved backwards, so wall behind him
+                print >> sys.stderr, "he moved back in second cehck"
+                if is_valid_wall(players, creator_id, walls, left_wall["wallX"] + 1, left_wall["wallY"], left_wall["wallO"]):
+                    print left_wall["wallX"] + 1, left_wall["wallY"], left_wall["wallO"]
+                else:
+                    print best_path(players, creator_id, walls)
+
+            elif (is_valid_wall(players, creator_id, walls, players[receiver_id]['x'], players[receiver_id]['y'] - 1, 'V')):
                 print players[receiver_id]['x'], players[receiver_id]['y'] - 1, 'V'
             else:
                 print >> sys.stderr, "Err: not a valid V wall in build V wall lockdown endzone == LEFT and check == False, but doing best_path instead"
                 print best_path(players, creator_id, walls)
+
     elif (endzone == "RIGHT"):
         if (check(players[receiver_id]['y'])):
-            if (is_valid_wall(players, creator_id, walls, players[receiver_id]['x'] + 1, players[receiver_id]['y'], 'V')):
+            right_wall = {"wallX": players[receiver_id]['x'] + 1, "wallY": players[receiver_id]['y'], "wallO": 'V'}
+            if oppo_cur_heading == "LEFT":
+                if is_valid_wall(players, creator_id, walls, right_wall["wallX"], right_wall["wallY"], right_wall["wallO"]):
+                    print right_wall["wallX"], right_wall["wallY"], right_wall["wallO"]
+                else:
+                    print best_path(players, creator_id, walls)
+
+            elif (is_valid_wall(players, creator_id, walls, players[receiver_id]['x'] + 1, players[receiver_id]['y'], 'V')):
                 print players[receiver_id]['x'] + 1, players[receiver_id]['y'], 'V'
             else:
                 print >> sys.stderr, "Err: not a valid V wall in build V wall lockdown endzone == RIGHT and check == True, but doing best_path instead"
                 print best_path(players, creator_id, walls)
         else: # odd y pos
-            if (is_valid_wall(players, creator_id, walls, players[receiver_id]['x'] + 1, players[receiver_id]['y'] - 1, 'V')):
+            right_wall = {"wallX": players[receiver_id]['x'] + 1, "wallY": players[receiver_id]['y'] - 1, "wallO": 'V'}
+            if oppo_cur_heading == "LEFT":
+                if is_valid_wall(players, creator_id, walls, right_wall["wallX"], right_wall["wallY"], right_wall["wallO"]):
+                    print right_wall["wallX"], right_wall["wallY"], right_wall["wallO"]
+                else:
+                    print best_path(players, creator_id, walls)
+            elif (is_valid_wall(players, creator_id, walls, players[receiver_id]['x'] + 1, players[receiver_id]['y'] - 1, 'V')):
                 print players[receiver_id]['x'] + 1, players[receiver_id]['y'] - 1, 'V'
             else:
                 print >> sys.stderr, "Err: not a valid V wall in build V wall lockdown endzone == RIGHT and check == False, but doing best_path instead"
@@ -1001,6 +1040,8 @@ oppo_gap = None
 horizontal_phase = False
 goals = None
 min_so_far = 10
+oppo_last_pos = None
+oppo_cur_heading = None
 
 # game loop
 while 1:
@@ -1022,6 +1063,16 @@ while 1:
             else:
                 goals = [{'x': x, 'y': h - 1}]
 
+    his_id = 0 if myId == 1 else 1
+    if not oppo_last_pos:
+        oppo_cur_heading = find_endzone(his_id)
+    else:
+        if players[his_id]["x"] < oppo_last_pos["x"]:
+            oppo_cur_heading = "LEFT"
+        elif players[his_id]["x"] > oppo_last_pos["x"]:
+            oppo_cur_heading = "RIGHT"
+
+
 
     wallCount = int(raw_input()) # number of walls on the board
     for i in xrange(wallCount):
@@ -1040,6 +1091,8 @@ while 1:
     else:
         two_players(players, walls, myId)
         
+    
+    oppo_last_pos = players[his_id]
     # action: LEFT, RIGHT, UP, DOWN or "putX putY putOrientation" to place a wall    
     # Write an action using print
     # To debug: print >> sys.stderr, "Debug messages..."
