@@ -25,7 +25,7 @@
 # TODO maybe. if he goes shortest path instead of gap strategy. Might get through our lockdown through non-gap (I don't think so but you never know)
 
 
-import sys, math, random
+import sys, math, random, time
 from Queue import Queue
 
 
@@ -557,10 +557,17 @@ def matush_path(start, goal, walls):
 
     while not frontier.empty():
         current = frontier.get()
+
+        if current == goal:
+            break 
+
         for next in path_neighbors(current, walls):
             if str(next) not in came_from:
                 frontier.put(next)
                 came_from[str(next)] = current
+
+    if (str(goal) not in came_from):
+        return False
 
     print reconstruct_path(start, goal, came_from)
 
@@ -1019,18 +1026,27 @@ goals = None
 min_so_far = 15
 
 
-position = {"x": 0, "y": 3}
-goal = {"x": 1, "y": 3}
-walls = []
+position = {"x": 7, "y": 4}
+goal = {"x": 8, "y": 6}
+walls = [{'wallY': 2, 'wallX': 5, 'wallO': 'V'}, {'wallY': 0, 'wallX': 1, 'wallO': 'V'}, {'wallY': 2, 'wallX': 1, 'wallO': 'V'}, {'wallY': 4, 'wallX': 8, 'wallO': 'V'}]
 print matush_path(position, goal, walls)
 print "^ Should just be RIGHT since goal is right next to player ^"
 
 
 goal = {"x": 8, "y": 3}
-print shortest_path(position, goal, walls)
+print matush_path(position, goal, walls)
 print "^ Should just be 8 RIGHTs ^"
 
 
 goal = {"x": 5, "y": 7}
-print shortest_path(position, goal, walls)
+print matush_path(position, goal, walls)
 print "^ Should print 5 RIGHTs then 4 DOWNs ^"
+
+walls = [{'wallY': 2, 'wallX': 5, 'wallO': 'V'}, {'wallY': 4, 'wallX': 5, 'wallO': 'V'}, {'wallY': 6, 'wallX': 3, 'wallO': 'H'}]
+position = {"x": 4, "y": 5}
+goal = {"x": 5, "y": 6}
+s = time.time()
+print wall_in_front(walls, position, "RIGHT")
+print "shortest path: ", matush_path(position, goal, walls)
+end = time.time()
+print end - s

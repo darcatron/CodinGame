@@ -595,3 +595,13 @@ print "^ Should just be 8 RIGHTs ^"
 goal = {"x": 5, "y": 7}
 print shortest_path(position, goal, walls)
 print "^ Should print 5 RIGHTs then 4 DOWNs ^"
+
+
+walls = [{'wallY': 2, 'wallX': 5, 'wallO': 'V'}, {'wallY': 4, 'wallX': 5, 'wallO': 'V'}, {'wallY': 6, 'wallX': 3, 'wallO': 'H'}]
+position = {"x": 4, "y": 5}
+goal = {"x": 5, "y": 6}
+s = time.time()
+print wall_in_front(walls, position, "RIGHT")
+print "shortest path: ", shortest_path(position, goal, walls)
+end = time.time()
+print end - s
