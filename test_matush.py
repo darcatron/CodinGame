@@ -585,15 +585,27 @@ def path_neighbors(pos, walls):
 
 def reconstruct_path(start, goal, came_from):
     current = goal 
-    path = [current]
+    path = []
 
     while current != start:
+       direction = get_direction(came_from[str(current)], current)
        current = came_from[str(current)]
-       if ()
-       path.append(current)
+       path.append(direction)
 
     return path
 
+
+def get_direction(from_pos, to_pos):
+    if to_pos["x"] == from_pos["x"] + 1:
+        return "RIGHT"
+    elif to_pos["x"] == from_pos["x"] - 1:
+        return "LEFT"
+    elif to_pos["y"] == from_pos["y"] + 1:
+        return "DOWN"
+    elif to_pos["y"] == from_pos["y"] - 1:
+        return "UP"
+    else:
+        print >> sys.stderr, "Weird positions in get_direction for A* algo"
 ############################################################################
 
 def shortest_path(player_pos, goal, walls):
@@ -1014,11 +1026,11 @@ print matush_path(position, goal, walls)
 print "^ Should just be RIGHT since goal is right next to player ^"
 
 
-# goal = {"x": 8, "y": 3}
-# print shortest_path(position, goal, walls)
-# print "^ Should just be 8 RIGHTs ^"
+goal = {"x": 8, "y": 3}
+print shortest_path(position, goal, walls)
+print "^ Should just be 8 RIGHTs ^"
 
 
-# goal = {"x": 5, "y": 7}
-# print shortest_path(position, goal, walls)
-# print "^ Should print 5 RIGHTs then 4 DOWNs ^"
+goal = {"x": 5, "y": 7}
+print shortest_path(position, goal, walls)
+print "^ Should print 5 RIGHTs then 4 DOWNs ^"
