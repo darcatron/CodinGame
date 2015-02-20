@@ -565,6 +565,10 @@ def matush_path(start, goal, walls):
 
     while not frontier.empty():
        current = frontier.get()
+
+       # if current == goal:
+       #    break   
+       
        for next in path_neighbors(current, walls):
           if next not in came_from:
              frontier.put(next)
