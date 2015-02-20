@@ -507,7 +507,7 @@ def gap_strategy(players, player_id, walls):
                     goals.append({'x': wall_ahead['x'] - 1, 'y': wall_ahead['y'] + 2})
 
     # shortest_path() # TODO
-    matush_path({'x': players[player_id]['x'], 'y': players[player_id]['y']}, cur_goal)
+    matush_path({'x': players[player_id]['x'], 'y': players[player_id]['y']}, cur_goal, walls)
 
 # UNTESTED
 # checks if a coordinate goal is satisfied
@@ -551,42 +551,45 @@ def nearest_vertical_wall_in_row(start_pos, player_id, walls):
 # Pre-condition: start must be ('x': , 'y': ) only dict
 def matush_path(start, goal, walls):
     frontier = Queue()
-    frontier.put(start) # TODO send in start as (x,y) dict
+    frontier.put(start)
     came_from = {}
-    came_from[start] = None
+    came_from[str(start)] = None
 
     while not frontier.empty():
-       current = frontier.get()
-       for next in path_neighbors(current, walls):
-          if next not in came_from:
-             frontier.put(next)
-             came_from[next] = current
+        current = frontier.get()
+        for next in path_neighbors(current, walls):
+            if str(next) not in came_from:
+                frontier.put(next)
+                came_from[str(next)] = current
 
-    reconstruct_path(goal, came_from)
+    print reconstruct_path(start, goal, came_from)
 
+# finds the reachable neighors from pos
+# pos is a dict
 def path_neighbors(pos, walls):
     neighbors = []
     # check left
-    if (not wall_in_front(walls, pos, "LEFT")):
+    if (not wall_in_front(walls, pos, "LEFT") and is_in_bounds({'x': pos['x'] - 1, 'y': pos['y']})):
         neighbors.append({'x': pos['x'] - 1, 'y': pos['y']})
     # check right
-    if (not wall_in_front(walls, pos, "RIGHT")):
+    if (not wall_in_front(walls, pos, "RIGHT") and is_in_bounds({'x': pos['x'] + 1, 'y': pos['y']})):
         neighbors.append({'x': pos['x'] + 1, 'y': pos['y']})
     # check up
-    if (not wall_in_front(walls, pos, "UP")):
+    if (not wall_in_front(walls, pos, "UP") and is_in_bounds({'x': pos['x'], 'y': pos['y'] - 1})):
         neighbors.append({'x': pos['x'], 'y': pos['y'] - 1})
     # check down
-    if (not wall_in_front(walls, pos, "DOWN")):
+    if (not wall_in_front(walls, pos, "DOWN") and is_in_bounds({'x': pos['x'], 'y': pos['y'] + 1})):
         neighbors.append({'x': pos['x'], 'y': pos['y'] + 1})
 
     return neighbors
 
-def reconstruct_path(goal, came_from):
+def reconstruct_path(start, goal, came_from):
     current = goal 
     path = [current]
 
     while current != start:
-       current = came_from[current]
+       current = came_from[str(current)]
+       if ()
        path.append(current)
 
     return path
@@ -1007,15 +1010,15 @@ min_so_far = 15
 position = {"x": 0, "y": 3}
 goal = {"x": 1, "y": 3}
 walls = []
-print shortest_path(position, goal, walls)
+print matush_path(position, goal, walls)
 print "^ Should just be RIGHT since goal is right next to player ^"
 
 
-goal = {"x": 8, "y": 3}
-print shortest_path(position, goal, walls)
-print "^ Should just be 8 RIGHTs ^"
+# goal = {"x": 8, "y": 3}
+# print shortest_path(position, goal, walls)
+# print "^ Should just be 8 RIGHTs ^"
 
 
-goal = {"x": 5, "y": 7}
-print shortest_path(position, goal, walls)
-print "^ Should print 5 RIGHTs then 4 DOWNs ^"
+# goal = {"x": 5, "y": 7}
+# print shortest_path(position, goal, walls)
+# print "^ Should print 5 RIGHTs then 4 DOWNs ^"

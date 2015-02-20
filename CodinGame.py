@@ -510,7 +510,7 @@ def gap_strategy(players, player_id, walls):
                     goals.append({'x': wall_ahead['x'] - 1, 'y': wall_ahead['y'] + 2})
 
     shortest_path(players[player_id], cur_goal, walls) # TODO
-    # matush_path({'x': players[player_id]['x'], 'y': players[player_id]['y']}, cur_goal)
+    # matush_path({'x': players[player_id]['x'], 'y': players[player_id]['y']}, cur_goal, walls)
 
 # UNTESTED
 # checks if a coordinate goal is satisfied
@@ -521,6 +521,7 @@ def goal_complete(cur_pos, goal):
     return False
 
 # UNTESTED
+# TODO MAKE SURE SHORTEST_PATH ACCOUNTS FOR AN IMPOSSIBLE GOAL
 # checks if a coordinate goal is reachable and does not lead to a dead end
 def goal_possible(pos, cur_goal, walls):
     return shortest_path(pos, cur_goal, walls) # TODO
@@ -617,7 +618,7 @@ def shortest_path(player_pos, goal, walls):
 
 
     fewest_moves = calculate_shortest_path(player_pos, goal, walls, visited, moves, long_array)
-    print fewest_moves[0]
+    fewest_moves[0]
 
 
 # Recursive function for shortest_path
