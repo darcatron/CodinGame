@@ -983,10 +983,10 @@ def should_lock(players, his_id, walls, my_id):
 
     h_wall = lockdown_h_walls[-1] # get last h_wall placed
 
-    if should_h_wall_lock(players[his_id], h_wall, walls, one_h_wall_offset):
-        return 4
-    elif should_h_wall_lock(players[his_id], h_wall, walls, one_cell_gap_offset):
+    if should_h_wall_lock(players[his_id], h_wall, walls, one_cell_gap_offset):
         return 3
+    elif should_h_wall_lock(players[his_id], h_wall, walls, one_h_wall_offset):
+        return 4
 
     return False
 
@@ -1107,16 +1107,18 @@ def lock_1_4(players, walls, my_id):
     his_endzone = find_endzone(his_id)
     last_h_wall = lockdown_h_walls[-1]
     his_pos = "DOWN" if players[his_id]['y'] >= last_h_wall['wallY'] else "UP"
-    pos_x_1, pos_y_1, pos_x_4, pos_y_4, pos_x_6, pos_y_6 = None, None, None, None, None, None
+    pos_x_1, pos_y_1, pos_x_4, pos_y_4, pos_x_6, pos_y_6, pos_x_quick_lock, pos_y_quick_lock = None, None, None, None, None, None, None, last_h_wall["wallY"] - 1
 
     if (his_endzone == "LEFT"):
         pos_x_1 = last_h_wall["wallX"]
         pos_x_4 = last_h_wall["wallX"] - 1
         pos_x_6 = last_h_wall["wallX"] - 1
+        pos_x_quick_lock = last_h_wall["wallX"] + 2
     elif (his_endzone == "RIGHT"):
         pos_x_1 = last_h_wall["wallX"] + 2
         pos_x_4 = last_h_wall["wallX"] + 1
         pos_x_6 = last_h_wall["wallX"] + 3
+        pos_x_quick_lock = last_h_wall["wallX"]
     else:
         print >> sys.stderr, "Err: Invalid his_endzone in lock_1_4"     
 
@@ -1152,6 +1154,12 @@ def lock_1_4(players, walls, my_id):
         # else build 1
         if is_valid_wall(players, my_id, walls, pos_x_1, pos_y_1, 'V'):
             print pos_x_1, pos_y_1, 'V'
+        elif (last_h_wall["wallY"] == 1 or last_h_wall["wallY"] == h - 1):
+            if is_valid_wall(players, my_id, walls, pos_x_quick_lock, pos_y_quick_lock, 'V'):
+                print pos_x_quick_lock, pos_y_quick_lock, 'V'
+                locked = True
+            else:
+                print >> sys.stderr, "Err: Invalid wall quick_lock in lock_1_4"   
         else:
              print >> sys.stderr, "Err: Invalid wall 1 in lock_1_4"
 
@@ -1181,7 +1189,13 @@ while 1:
         players.append({"x": x,"y": y, "wallsLeft" : wallsLeft})
         
         if (goals == None and player == myId):
-            goals = [{'x': w - 1, 'y': y}]
+            if myId == 0:
+                goals = [{'x': w - 1, 'y': y}]
+            elif myId == 1:
+                goals = [{'x': 0, 'y': y}]
+            else:
+                goals = [{'x': x, 'y': h - 1}]
+
 
     wallCount = int(raw_input()) # number of walls on the board
     for i in xrange(wallCount):
